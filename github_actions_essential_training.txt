@@ -1,0 +1,486 @@
+// LESSON INTRO.4 - WORKING WITH YAML FILES 
+- yaml isn't a markup langauge 
+- yaml is a programming language for data serialization 
+- easily read by humans 
+- easily parsed by machines 
+
+// LESSON 1.1 - YOUR FIRST ACTION 
+- go to github repository 
+- go to actions 
+
+// LESSON 1.2 - WORKFLOW AND ACTION ATTRIBUTES 
+name: Hello World // name of the workflow 
+on : [push] // github event that triggers the workflow | this is required | there are push,pull_request,etc. | can also use multiple event e.g. [push,pull_request]
+jobs : // workflows must have at least one job, each job must have an identifier 
+    say-hello: // example of a job 
+        runs-on : ubuntu-latest // type of machine needed to run the job 
+        steps : // list of actions or commands, access to the file system, each step runs in its own process 
+        - name : Checkout // optional identifier for the step 
+          uses : actions/checkout@v2.0.0 // identifies the docker image,other repo or same repo for the action 
+        - run : echo Hello, World // runs comands in the virtual environment's shell 
+
+// LESSON 2.1 - CREATE A WORKFLOW 
+workflow
+  - repo can contain multiple workflows 
+  - define which actions to run 
+  - define the event that triggers the actions 
+
+creating workflows directory 
+  mkdir -p .github/workflows 
+  cd .github/workflows 
+  touch first.yml // workflow is created in yml 
+
+// LESSON 2.2 - ADD JOBS AND STEPS TO A WORKFLOW 
+name: first // name of workflow
+on: push // event
+jobs: // list of jobs
+  job1:
+    name: First job // name of job 
+    runs-on: ubuntu-latest // os where this job owuld run 
+    steps: // tasks within a job, like a job within a job | steps can run commands or actions 
+    - name: Step one 
+    - name: Step two 
+  job2:
+    name: Second job
+    runs-on: windows-latest 
+    steps: 
+    - name: Step one 
+    - name: Step two 
+  
+// LESSON 2.3 - ADD ACTIONS TO A WORKFLOW 
+adding an action 
+  action location 
+    public repository 
+      syntax 
+        uses: {owner}/{repo}@{ref}
+        uses: octocat/super-cool-action@v1
+    the same repository as the workflow 
+      syntax 
+        uses: ./path/to/the/action 
+        uses: ./.github/actions/my-local-action 
+    a docker image registry 
+      syntax 
+        uses: docker://{image}:{tag}
+        uses: docker://hello-world:latest
+
+name: first // name of workflow
+on: push // event
+jobs: // list of jobs
+  job1:
+    name: First job // name of job 
+    runs-on: ubuntu-latest // os where this job owuld run 
+    steps: // tasks within a job, like a job within a job | steps can run commands or actions 
+    - name: Step one // name of step 1 
+      uses: actions/checkout@v2 // executing action, to add an action you specify the repository location or a docker image registry
+    - name: Step two // name of step 2
+      run: env | sort // command for step two 
+    
+  job2:
+    name: Second job
+    runs-on: windows-latest 
+    steps: 
+    - name: Step one 
+      uses: actions/checkout@v2
+    - name: Step two 
+      run: "Get-ChildItem Env: | Sort-Object Name"
+
+// once you did git push, you could see the workflow above has been executed, it did its job and the steps within it 
+
+// LESSON 2.5 ADD DEPENDENCIES BETWEEN ACTIONS 
+needs 
+  - identifies one or more jobs that must complete successfully before a job will run 
+name: first // name of workflow
+on: push // event
+jobs: // list of jobs
+  job1:
+  job2: 
+  job3: 
+    needs: [job1, job2] // this is saying, job 1 and job 2 needs to be finished first before job3 executes 
+
+// LESSON 2.6 - ADD CONDITIONS TO A WORKFLOW 
+on: 
+  push:
+    branches: // just indent to indicate branching just like in this example 
+      - develop
+      - master 
+
+on: 
+  pull_request:
+    branches:
+      - master 
+
+on:
+  push: 
+    branches:
+      - develop 
+      - master 
+  pull_request:
+    branches: 
+      - master 
+  
+// LESSON 2.7 - WORKFLOW AND ACTION LIMITATIONS 
+- 1000 api requests per hour 
+- actions acan't trigger other workflows 
+- logs are limited to 64 kb 
+- exceeding limits can cause job queueing or failed jobs 
+
+// LESSON 2.8 - CHALLENGE: COMPLEX WORKFLOW 
+
+// LESSON 2.9 - SOLUTION: DEVELOP A COMPLEX WORKFLOW - COMPILATION OF KNOWLEDGE FOR CHAPTER 2 
+name: Complex 
+on: push 
+jobs: 
+  ubuntu: // job 1 
+    runs-on: ubuntu-latest // machine it would run on 
+    steps: // task within a job 
+      - run: date // executes shell command (shell is the default)
+  windows: 
+    runs-on: windows-latest 
+    steps:
+      - run: date
+  macos:
+    runs-on: macos-latest 
+    steps:
+      - run: date
+  depends:
+    needs: [ubuntu, windows, macos] // these jobs must be executed first before this "depends" job shall start 
+    runs-on: macos-latest
+    steps:
+      - run: date
+
+// LESSON 3.1 - USE AN ACTION FROM THE MARKETPLACE 
+- example of a good action: python syntax checker
+name: Python application
+on: [push]
+jobs:
+  build: 
+    runs-on:ubuntu-latest 
+    steps:
+      - name: Check out the code // action or command 
+      uses: actions/checkout@v2 
+      - name: Python Syntax Checker // this is the one we downloaded | can be an action or command 
+      uses: cclaus/Find-Python-syntax-errors-action@v0.2.0
+
+// now whenever we push, python syntax checker is gonna do its job 
+
+// LESSON 3.2 - USE AN ACTION FROM A REPOSITORY 
+- actions in the same repo 
+  steps: 
+    - uses: "./.github/action1" // ./ is to specify the root 
+- actions in any public repository 
+  steps: 
+    - uses: "user/repo@ref" // specify the repo owner's user id, the repo, and a reference 
+- docker images from an image registry 
+  steps: 
+    - uses: "docker://image:tag"
+
+// LESSON 3.3 - PASSING ARGUMENTS TO AN ACTION 
+uses: {github account}/{action name}
+with: 
+  key:value 
+  key:value
+
+// example code 
+steps: 
+  - name: Checkout the code 
+    uses: actions/checkout@v2 
+    with: 
+      repository: apache/tomcat // checkout all the code from apache/tomcat 
+      ref: master // reference to a branch we want 
+      path: ./tomcat // tells the checkout action where to put the code relative to the working directory 
+
+// LESSON 3.4 - USING ENVIRONMENT VARIABLES 
+- there are default env variables | e.g. GITHUB_WORKFLOW, GITHUB_ACTOR, GITHUB_WORKSPACE, GITHUB_EVENT_NAME, etc.
+- can be used in workflow,jobs, or steps 
+
+accessing environment varaibles 
+  linux/macos 
+    - bash 
+    - $VARIABLE_NAME
+  windows 
+    - powershell
+    - $Env:VARIABLE_NAME 
+
+YAML syntax 
+- ${{ env.VARIABLE_NAME }}
+
+// LESSON 3.5 - USING SECRETS 
+- stored as encrypted environment variables 
+- can't be viewed or edited 
+- secrets are encrypted immediately after they are entered, unlike in env variables 
+- secrets are all hidden while env file can be hardcoded inside the yaml workflow 
+- workflows can have up to 100 secrets 
+
+accessing secrets 
+  ${{ secrets.SECRET_NAME }}
+
+steps: 
+  - name : Configure AWS Credentials 
+    uses: aws-actions/configure-aws-credentials@v1 
+    with: 
+      aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }} // accessing the secrets, think of this as env file or process.env.AWS_SECRET_ACCESS
+      aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }} // same explanation as above 
+      aws-region: us-east-2
+  - name: List S3 Buckets 
+    run: aws s3api list-buckets 
+
+// LESSON 3.6 - USING ARTIFACTS 
+- SAVE DATA FROM A WORKFLOW AS AN ARTIFACT 
+- IMPORTANT: you can use artifacts to save your build and test output after a workflow run has ended 
+- files or collection of files 
+  - complied binaries 
+  - arhives 
+  - test results 
+- pass data between workflow jobs 
+
+test-linux:
+  name: Test linux
+  runs-on [ubuntu-latest]
+  needs: [build]
+  steps: 
+    - name: Download artifact 
+      uses: actions/download-artifact@v1.0.0 // example usa case of artifact 
+      with:
+        name: linux 
+
+// UNFINSIHED LESSON 3.7 - MANAGE PULL REQUESTS 
+- automate approve and merge prs based on criteria 
+COPY THE CODE FROM LINKEDIN LEARNIGN COURSE FOR THIS SPECIFIC LESSON 
+
+// LESSON 3.8 - CREATE AN ARTIFACT - COMPILATION OF KNOWLEDGE FOR CDHAPTER 3 
+name: artifact // name of workflow 
+on: [push] // what event will trigger this workflow 
+env: // env or hidden variable to be used 
+  ARTIFACT_NAME: myartifact 
+
+jobs: // job that would execute at this workflow 
+  main: // job 1
+    runs-on: ubuntu-latest // machine to run this task 
+    steps: // task within job 1 
+      - name: Check out the code // name of action or command to be done 
+        uses: actions/checkout@v2 // action 
+      - name: Upload the artifact 
+        uses: actions/upload-artifact@v2 
+        with: // passing arguments to an action 
+          name: ${{ env.ARTIFACT_NAME }} // name of key value pair to be passed 
+          path: . // lcoation of artifact 
+
+// LESSON 4.1 - PLAN YOUR CI/CD PIPELINE 
+continous integration(CI)
+  - find and resolve problems early 
+  - work locally and then commit to repo 
+continous delivery and deploymeny 
+  - compiled into artifacts 
+  - stored 
+  - additional tests
+  - ready for deployment 
+  - deploy to live environments 
+
+workflow of ci/cd pipeline 
+  push 
+    -> lint check 
+      -> build store 
+        -> test 
+          -> deploy 
+            -> prod server 
+
+// LESSON 4.2 - LINTING AND UNIT TESTS 
+linting 
+  - enforce coding standards 
+  - improve code quality 
+  - catch errors early in the design cycle 
+unit tests 
+  - first tests run 
+  - checks code at the component level 
+  - exposes problems closer to the code 
+  - fast running 
+
+name: Pipeline 
+on: [push]
+env: 
+  APPLICATION_NAME: app2
+jobs:
+  lint:
+    runs-on: ubuntu-18.04 
+    steps: 
+    - uses: actions/checkout@v1 
+    - name: Setup Python environment 
+      uses: actions/setup-python@v1.1.1
+    - name: Install requirements 
+      run: pip install --quiet --requirement requirements.txt 
+    - name: Lint code 
+      run: | 
+        flake8 --ignore=E501, E231 *.py 
+        pylint ---disable=C0301 --disable=C0326 *.py 
+    - name: Run unit tests 
+      run: |
+        python -n unittest --verbose --failfast 
+
+// LESSON 4.3 - BUILDING AND MANAGING ARTIFACTS 
+build 
+  - compile code into a binary package 
+  - machine-readable format 
+  - gnu compiler -> c/c++ -> executable 
+  - zip, tar, rpm -> files -> archive 
+  - docker -> layers -> container image 
+artifacts 
+  - binaries, archives, and images produced by a build step 
+  - exist beyond the life of the build step 
+  - stored and tracked in registries 
+  - authentication is required to upload artifacts 
+
+build_image:
+    needs: [lint]
+    runs-on: ubuntu-18.04
+    steps:
+    - uses: actions/checkout@v1
+    - name: Set up GCloud
+      uses: GoogleCloudPlatform/github-actions/setup-gcloud@master
+      with:
+        version: '274.0.1'
+        service_account_email: ${{ secrets.GCP_SERVICE_ACCT_EMAIL }}
+        service_account_key: ${{ secrets.GCP_SERVICE_ACCT_KEY }}
+    - run: |
+        gcloud config set project ${{ secrets.GCP_PROJECT_ID }}
+        gcloud config set run/region ${{ secrets.GCP_REGION }}
+        gcloud auth configure-docker
+        gcloud info
+
+    - name: Build and tag image
+      run: docker build -t "gcr.io/${{ secrets.GCP_PROJECT_ID }}/${{ env.APPLICATION_NAME }}:latest" .
+
+    - name: Push to GCP image registry
+      run: docker push gcr.io/${{ secrets.GCP_PROJECT_ID }}/${{ env.APPLICATION_NAME }}:latest
+
+// LESSON 4.4 - TESTING 
+testing 
+  - automated testing improves deploymeny speed
+  - checks for error continously 
+
+ test_image:
+    needs: [build_image]
+    runs-on: ubuntu-18.04
+    steps:
+    - name: Set up GCloud
+      uses: GoogleCloudPlatform/github-actions/setup-gcloud@master
+      with:
+        version: '274.0.1'
+        service_account_email: ${{ secrets.GCP_SERVICE_ACCT_EMAIL }}
+        service_account_key: ${{ secrets.GCP_SERVICE_ACCT_KEY }}
+    - run: |
+        gcloud config set project ${{ secrets.GCP_PROJECT_ID }}
+        gcloud config set run/region ${{ secrets.GCP_REGION }}
+        gcloud auth configure-docker
+        gcloud info
+
+    - name: Run unit tests in container
+      run: docker run "gcr.io/${{ secrets.GCP_PROJECT_ID }}/${{ env.APPLICATION_NAME }}:latest" -m unittest --verbose --failfast
+
+// LESSON 4.5 - DEPLOYING 
+- code is now ready to be pushed 
+
+ deploy:
+    needs: [test_image]
+    runs-on: ubuntu-18.04
+    steps:
+    - name: Set up GCloud
+      uses: GoogleCloudPlatform/github-actions/setup-gcloud@master
+      with:
+        version: '274.0.1'
+        service_account_email: ${{ secrets.GCP_SERVICE_ACCT_EMAIL }}
+        service_account_key: ${{ secrets.GCP_SERVICE_ACCT_KEY }}
+    - run: |
+        gcloud config set project ${{ secrets.GCP_PROJECT_ID }}
+        gcloud config set run/region ${{ secrets.GCP_REGION }}
+        gcloud info
+        
+    - name: Deploy to Cloud Run
+      run: gcloud run deploy ${{ env.APPLICATION_NAME }} --image=gcr.io/${{ secrets.GCP_PROJECT_ID }}/${{ env.APPLICATION_NAME }}:latest --platform=managed --allow-unauthenticated
+
+    - name: Test deployment // sanity check if all is working 
+      run: |
+        DEPLOY_URL=$(gcloud run services describe app2 --platform=managed --region=us-central1 | grep https)
+        curl -sL --max-time 300 -o /dev/null -w "%{http_code}" $DEPLOY_URL | grep 200 || exit 1
+
+// LESSON 4.6 - STATUS BADGE 
+- graphical representation of workflow status 
+- track status based on branches and events 
+- placed onreadme file in repository 
+
+format  
+  https://github.com/<OWNER>/<REPOSITORY>/workflows/<WORKFLOW_NAME>/badge.svg
+
+// LESSON 4.7 - DEVELOP A CI/CD PIPELINE FOR A PYTHON SCRIPT - COMPILATION OF KNOWLEDGE FOR CHAPTER 4 
+name: Python Pipeline // name of workflow 
+on: push // event to trigger the workflow 
+jobs:
+  test: // task within the job 
+    runs-on: ubuntu-latest // machine it would run on 
+    steps: // action or command or both 
+      - uses:actions/checkout@v2 // this action checks out your repo under github_workspace so your workflow can access it  
+      - run:python hello.py // script | run the python script after looking at your repo with action checkout 
+
+  build:
+    needs:[test] // dependency, test job must be executed first 
+    runs-on: ubuntu-latest // machine it would run on 
+    steps: // task within the job 
+      - name: // name of the action or command 
+        uses: actions/checkout@v2 // this action checks out your repo under github_workspace so your workflow can access it 
+        uses: actions/upload-artifact@v2 // action that uploads artifact | artifact contains current data of the workflow 
+        with: // passing argument to an action for 'uses' at this job | steps use with attribute to argument | 'uses' actions or commands can access these key value pairs below 
+          name: hello // key value pair that can be accessed by the actions or commands at this job 
+          path: . // key value pair that can be accessed by the actions or commands at this job 
+
+// LESSON 5.1 - PLAN A CUSTOM ACTION 
+custom action checklist 
+  - objective 
+    - what problem does the action solve 
+    - can the aciton be parameterized 
+  - repository 
+    - new public repo 
+    - helps with managing and versioning code 
+    - helps with sharing and reuse 
+  - dockerfile 
+    - defines the container for the action 
+    - install libraries or requirements 
+    - calls the action's script 
+  - script 
+    - defines commands that are run by the action 
+    - interacts with env variables 
+    - any scripting langauage can be used 
+  - action.yml 
+    - metadata file 
+    - defines inputs,outputs and entry points 
+    - name,description,and author 
+    - branding 
+
+// LESSON X.1 - CONCLUSION
+name: Sample Workflow // obviously name of workflow 
+on: [push] // git command to trigger the workflow | this can be pull_request,etc.
+jobs: // job of the workflow, can have multiple of these 
+  job1: // example of a job 
+    runs-on: ubuntu-latest // what machine to run this job 
+    steps: // task within the job can be either action or command 
+    - name: Checkout // example of an action, action can be docker image/repo or command 
+      uses: actions/checkout@v2.0.0 // identifies what action to use for this task | this could be other repo,same repo,docker image | execute code or command 
+    - name: Step two // another action 
+      run: env | sort // used a command instead of a docker image or a code from other repo or same repo | for codes use 'uses', for commands use 'run'
+  job2: // another example of a job 
+    needs: [job1] // dependency, job1 must be finished first before job2 starts executing 
+    runs-on: windows-latest // what machine to run this job 
+  marketplace: // another job 
+    runs-on: ubuntu-latest // what machine to run this job 
+    steps: // task within a job can be either action or command 
+      - name: Python Syntax Checker // name of the action | action we downloaded from the marketplace 
+      uses: cclaus/Find-Python-syntax-errors-action@v0.2.0 // grabbing the code of the action 
+  arguments: // another job 
+    runs-on: ubuntu-latest // what machine to run this job 
+    steps: // task within the job can be either action or command 
+    - name: Checkout the code // name of the action 
+      uses: actions/checkout@v2 // what code to use for this task 
+      with: // passing arguments to an action 
+        repository: apache/tomcat // checkout all the code from apache/tomcat 
+        ref: master // reference to a branch we want 
+        path: ./tomcat // tells the checkout action where to put the code relative to the working directory 
+
+// LESSON X.2 - TOPICS TO REMEMBER 

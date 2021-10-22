@@ -1,0 +1,660 @@
+// LESSON 1.1 - INTRODUCTION TO FLAT FILES 
+data frames 
+    pandas - specific structure for two dimensional data
+
+flat files 
+    - simple, easy to produce format 
+    - data stored as plain text (no formatting)
+    - one row per line 
+    - values for different fields are separated by a delimiter 
+    - most common flat file type: comma separated values 
+
+loading csv 
+    import pandas as pd 
+
+    tax_data = pd.read_csv("us_tax_data.csv")
+    tax_data.head(4)
+
+loading other flat files 
+    # Import pandas with the alias pd
+    import pandas as pd 
+
+    # Load TSV using the sep keyword argument to set delimiter
+    tax_data = pd.read_csv("us_tax_data.tsv", sep="\t")
+    tax_data.head(4)
+
+    # Plot the total number of tax returns by income group
+    counts = data.groupby("agi_stub").N1.sum()
+    counts.plot.bar()
+    plt.show()
+
+// LESSON 1.2 - MODIFYING FLAT FILE IMPORTS 
+limiting columns: tbh i dont get this 
+- choose columns to load with the usecols keyword argument 
+- accepts a list of column number or names, or a function to filter column names 
+    col_names = ['STATEFIPS', 'STATE', 'zipcode', 'agi_stub', 'N1']
+    col_nums = [0, 1, 2, 3, 4] # using index of the columns 
+    
+    # Choose columns to load by name
+    tax_data_v1 = pd.read_csv('us_tax_data_2016.csv',
+                             usecols=col_names) # only load the name that matches from the value of each index specified
+                             
+    # Choose columns to load by number
+    tax_data_v2 = pd.read_csv('us_tax_data_2016.csv',
+                            usecols=col_nums) # only show columns 1-5 since col_nums only contains index 1-5
+    print(tax_data_v1.equals(tax_data_v2)) # this would print true 
+
+limiting rows 
+- limit the number of rows loaded with the nrows keyword argument 
+    tax_data_first1000 = pd.read_csv('us_tax_data_2016.csv', nrows=1000)
+    print(tax_data_first1000.shape)
+
+- use nrows and skiprows together to process a file in chunks 
+- skiprows accept a list of row numbers, a number of rows, or a function to filter rows
+- set header-None so pandas knows there are no column names 
+    tax_data_next500 = pd.read_csv("us_tax_data.csv,
+                                    nrows=500, # only show this amount of rows 
+                                    skiprows=1000,
+                                    header=None) # no column names, without this the default value would be 0 which means the first row would be treated as column name 
+
+assigning column names              
+- supply column names by passing a list to the names argument 
+- the list must have a name for every column in your data 
+- if you only need to rename a few columns, do it after the import
+    col_names = list(tax_data_first1000) # converting it to list to be able to pass it into names 
+    tax_data_next500 = pd.read_csv("us_tax_data.csv,
+                                        nrows=500,
+                                        skiprows=1000,
+                                        header=None # no column names, without this the default value would be 0 which means the first row would be treated as column name 
+                                        names=col_names) # specify column names 
+
+// LESSON 1.3 - HANDLING ERRORS AND MISSING DATA 
+common flat file import issues 
+- column data types are wrong 
+    - pandas automatically infers column data types, sometimes its wrong 
+    - do not let pandas guess, specify the column data types 
+    specifying data types on a column 
+        tax_data = pd.read_csv("us_tax_data_2016.csv", dtype={"zipcode":str})
+- values are missing 
+    - pandas automatically interprets some values as missing or NA 
+    - sometimes missing values are represented in ways that pandas won't catch such as with dummy codes (e.g. zip codes as 0 when they should be NA)
+    customizing missing data values 
+        tax_data = pd.read_csv("us_tax_data_2016.csv", 
+                                na_values={"zipcode" : 0,}) # this means any zero in zipcode should be treadted sa NA value 
+        print(tax_data[tax_data.zipcode.isna()]) # show zipcode with null values or missing values 
+- records that cannot be read by pandas | lines with errors 
+    solution 
+        - set error_bad_lines=False to skip unparseable records 
+        - set warn_bad_lines=True to see messages when records are skipped
+            try:
+            # Set warn_bad_lines to issue warnings about bad records
+            data = pd.read_csv("vt_tax_data_2016_corrupt.csv", 
+                                error_bad_lines=False, 
+                                warn_bad_lines=True)
+            
+            # View first 5 records
+            print(data.head())
+            
+            except pd.io.common.CParserError:
+                print("Your data contained rows that could not be parsed.")
+
+// LESSON 2.1 - INTRODUCTION TO SPREADSHEETS 
+- also known as excel files 
+- data stored in tabular form, with cells arranged in rows and columns 
+- unlike flat files, can have formatting anf formulas 
+- multiple spreadsheet can exist in a workbook 
+
+loading spreadsheets 
+    - read_excel() function from pandas 
+    import pandas as pd
+    
+    # Read the Excel file
+    survey_data = pd.read_excel("fcc_survey.xlsx")
+    
+    # View the first 5 lines of data
+    print(survey_data.head())
+
+loading select columns and rows 
+    - useful for non tabular information 
+    - read_excel() has many kargs in common with read_csv()
+        - nrows: limit number of rows to load 
+        - skiprows: specify number of rows or row numbers to skip 
+        - usecols: choose columns by name, positional number, or letter (e.g. "A:P" | a to p)
+
+    #Read columns W-AB and AR of file, skipping metadata header 
+    survery_data = pd.read_excel("fcc_survey_with_headers.xlsx",
+                                skiprows=2, # start with row 3 
+                                usecols="W:AB, AR") # we want the columns from w to ab, idk what ar does 
+    print(survey_data.head())
+
+// LESSON 2.2 - GETTING DATA FROM MULTIPLE WORKSHEETS 
+- an excel file can be a workbook 
+- spreadsheet is different from excel file 
+- read_excel() loads the first sheet in an excel file by default 
+- use the sheet_name kargs to load other sheets 
+- specify spreadsheets by name and/or (zero-indexed) position number 
+- pass a list of names/numbers to load more than one sheet at a time 
+- any arguments passed to read_excel() apply to all sheets read 
+
+loading select sheets 
+    # Get the second sheet by position index
+    survey_data_sheet2 = pd.read_excel('fcc_survey.xlsx',
+                                    sheet_name=1) # remember that index starts with 0
+    # Get the second sheet by name
+    survey_data_2017 = pd.read_excel('fcc_survey.xlsx',
+                                    sheet_name='2017')
+    print(survey_data_sheet2.equals(survey_data_2017))
+
+    # Graph where people would like to get a developer job
+    survey_prefs = survey_data_2017.groupby("JobPref").JobPref.count()
+    survey_prefs.plot.barh()
+    plt.show()
+
+loading all sheets 
+    - it preferred to use multiple calls if sheets contain very different data or layouts, that way, you can customize other arguments for each sheet 
+    # Passing sheet_name=None to read_excel() reads all sheets in a workbook
+    survey_responses = pd.read_excel("fcc_survey.xlsx", sheet_name=None)
+    print(type(survey_responses))
+
+    # Loading multiple sheets, you could also load it with its index position (e.g. sheet_name = [0,1] or sheet_name = [0, "2017"])
+    survey_responses = pd.read_excel("fcc_survey.xlsx", sheet_name=["2016","2017"])
+
+    # survey_responses now contains an array of spreadsheet, we gonna loop thru it 
+    for key, value in survey_responses.items():    
+        print(key, type(value))
+
+putting it all together 
+    # Create empty data frame to hold all loaded sheets
+    all_responses = pd.DataFrame()
+
+    # Iterate through data frames in dictionary
+    for sheet_name, frame in survey_responses.items():
+        # Add a column so we know which year data is from
+        frame["Year"] = sheet_name
+
+        # Add each data frame to all_responses    
+        all_responses = all_responses.append(frame)
+
+    # View years in data
+    print(all_responses.Year.unique())
+
+another example of putting it all together 
+    # Create an empty data frame
+    all_responses = pd.DataFrame()
+
+    # Set up for loop to iterate through values in responses
+    for df in responses.values():
+        # Print the number of rows being added
+        print("Adding {} rows".format(df.shape[0]))
+        # Append df to all_responses, assign result
+        all_responses = all_responses.append(df)
+
+    # Graph employment statuses in sample
+    counts = all_responses.groupby("EmploymentStatus").EmploymentStatus.count()
+    counts.plot.barh()
+    plt.show()
+
+// LESSON 2.3 - MODIFYING IMPORTS: TRUE/FALSE DATA 
+- true or false could be 0 or 1, or yes or no 
+- pandas doesn't interpret booleans datatype, booleans are interpreted as float64 
+
+pandas and booleans 
+    # Count True values 
+    print(bootcamp_data.sum()) # NA is automatically false 
+
+    #Count NAs 
+    print(bootcamp_data.isna().sum())
+
+specifying datatype as bools 
+- in float64(booleans default if not specified the datatype) anything iwth a value is automatically a true and those without value is false, in bool dtype anything without a value/NA are true 
+- unrecognized values are also set to true in bool datatype 
+
+    # Load data with Boolean dtypes and custom T/F values
+    bool_data = pd.read_excel("fcc_survey_booleans.xlsx",
+                            dtype={"AttendedBootcamp": bool,
+                            "AttendedBootCampYesNo": bool,
+                            "AttendedBootcampTF":bool,
+                            "BootcampLoan": bool,
+                            "LoanYesNo": bool,
+                            "LoanTF": bool},                          
+                            true_values=["Yes"], # specifying that yes values should be interpreted as true                        
+                            false_values=["No"])
+
+    - na values are still set as true, we don't want to fake this so we might decide to keep a column as floats 
+
+boolean considerations 
+- are there missing values, or could there be in the future? 
+- how will this column be used in analysis 
+- what would happen if a value were incorrectly coded as True?
+- could the data be modeled another way (e.g. as floats or integers)?
+
+// LESSON 2.4 - MODIFYING IMPORTS: PARSING DATES 
+- dates and times have their own data type and internal representation 
+- datetime values can be translated into string represntations 
+- common set of codes to describe datetime string formatting 
+
+pandas and datetimes 
+- datetime columns are loaded as objects (string) by default 
+- specify that columns have datetimes with the parse_dates argument (not dtype)
+- parse_dates can accept: 
+    - a list of column names or numbers to parse 
+    - a list of containing lists of columns to combine and parse 
+    - a dictionary where keys are new column names and values are lists of columns to parse together  
+
+parsing dates 
+    example legends 
+        - Part1StartTime: complete data and time (e.g. 2016-03-29 21:23:13)
+        - Part1EndTime: comeplete date and time (e.g. 2016-03-29 21:45:18)
+        - Part2StartDate: only the date (e.g. 2016-03-29)
+        - Part2StartTime: only the time (e.g. 21:24:57)
+        - Part2EndTime: complete date and time but in a different format (e.g. 03292016 21:24:25)
+
+    # List columns of dates to parse
+    date_cols = ["Part1StartTime", "Part1EndTime"]
+    
+    # Load file, parsing standard datetime columns
+    survey_df = pd.read_excel("fcc_survey.xlsx",
+                               parse_dates=date_cols)
+
+    # Check data types of timestamp columns
+    print(survey_df[["Part1StartTime", # this would produce datetime64[ns] since we already parsed it 
+                     "Part1EndTime",  # this would produce datetime64[ns] since we already parsed it 
+                     "Part2StartDate", # not yet datetime64 since we haven't parsed it yet 
+                     "Part2StartTime", 
+                     "Part2EndTime"]].dtypes)
+    
+    # List columns of dates to parse
+    date_cols = ["Part1StartTime", "Part1EndTime",
+                 [["Part2StartDate", "Part2StartTime"]]] # this would combine these two column thus producing just like the output for Part1StartTime 
+    
+    # Load file, parsing standard and split datetime columns
+    survey_df = pd.read_excel("fcc_survey.xlsx",
+                               parse_dates=date_cols)
+
+another way of parsing data 
+    # List columns of dates to parse | just the same as above except you get to specify the column name( i think? )
+    date_cols = {"Part1Start": "Part1StartTime",
+                 "Part1End": "Part1EndTime",
+                 "Part2Start": ["Part2StartDate",
+                  "Part2StartTime"]}
+
+    # Load file, parsing standard and split datetime columns
+    survey_df = pd.read_excel("fcc_survey.xlsx",
+                               parse_dates=date_cols)
+
+non-standard dates 
+    - parse_dates doesn't work with non-standard datetime formats 
+    - use pd.to_datetime() after loading data if parse_dates won't work 
+    - to_datetime() arguments 
+        - data frame and column to convert 
+        - format: string representation of datetime format 
+    
+    datetime formatting
+        - just google this shit 
+    
+    parsing non-standard dates 
+        format_string = "%m%d%Y %H:%M:%S" # to udnerstand this search datettime formatting 
+        survey_df["Part2EndTime"] = pd.to_datetime(survey_df["Part2EndTime"],
+                                                   format=format_string)
+
+// LESSON 3.1 - INTRODUCTION TO DATABASES 
+relational databases 
+    - tables can be linekd to each other via unique keys 
+    - suport more data, multiple simultaenous users and data quality controls 
+    - data types are specified for each column 
+    - sql to interact with database 
+
+connecting to database 
+    - create a way to conect to database 
+    - query what you want from the database 
+
+    creating a database engine 
+        - use sqlalchemy and use it create_engine() method, this makes an engine to handle database connections 
+    querying database 
+        - pd.read_sql(query, engine) to load in data from a database 
+
+    # Load pandas and sqlalchemy's create_engine 
+    import pandas as pd 
+    from sqlalchemy import create_engine 
+
+    # Create database engine to manage connections 
+    engine = create_engine("sqlite:///data.db")
+
+    # Load entire weather table with SQL 
+    weather = pd.read_sql("SELECT * FROM weather", engine)
+
+    print(weather.head())
+
+// LESSON 3.2 - REFINING IMPORTS WITH SQL QUERIES 
+sample use of selecting multiple columns 
+    # Create database engine for data.db
+    engine = create_engine('sqlite:///data.db')
+
+    # Write query to get date, tmax, and tmin from weather
+    query = """
+    SELECT date, 
+        tmax, 
+        tmin
+    FROM weather;
+    """
+
+    # Make a data frame by passing query and engine to read_sql()
+    temperatures = pd.read_sql(query, engine)
+
+    # View the resulting data frame
+    print(temperatures)
+
+sample use of where clause 
+    # Create query to get hpd311calls records about safety
+    query = """
+    SELECT *
+    FROM hpd311calls
+    WHERE complaint_type = 'SAFETY';
+    """
+
+    # Query the database and assign result to safety_calls
+    safety_calls = pd.read_sql(query,engine)
+
+    # Graph the number of safety calls by borough
+    call_counts = safety_calls.groupby('borough').unique_key.count()
+    call_counts.plot.barh()
+    plt.show()
+
+where clause with logical operator 
+    # Create query for records with max temps <= 32 or snow >= 1
+    query = """
+    SELECT * 
+    FROM weather
+    WHERE tmax <= 32
+        OR snow >= 1; # can also use AND 
+    """
+
+    # Query database and assign result to wintry_days
+    wintry_days = pd.read_sql(query, engine)
+
+    # View summary stats about the temperatures
+    print(wintry_days.describe())
+
+// LESSON 3.3 - MORE COMPLEX SQL QUERIES 
+getting distincy values 
+    - get unique values for one or more columns with SELECT DISTINCT 
+    SYNTAX: SELECT DISTINCT [column names] FROM [table]
+aggregate functions 
+    - query a database directly for descriptive statistics
+    - aggregate functions 
+        - SUM, AVG, MAX, MIN, COUNT  
+    - SUM, AVG, MAX, MIN all take a single column name 
+        - example: SELECT AVG(tmax) FROM weather; 
+            - returns the avg of all of the attributes from column tmax 
+    - COUNT 
+        - get number of rows that meet query conditions 
+            - SELECT COUNT(*) FROM [table]
+        - get number of unique values in a column 
+            - SELECT COUNT(DISTINCT [column_names]) FROM [table_name]
+group by 
+    - aggregate functions calculate a single summary statistic be default 
+    - you could think of this as bucketing, group records that has the same attributes from the column specified 
+    - e.g. GROUP BY fruit_name
+        - this groups all of the fruit_name that has the same values 
+
+    example code 
+    # Create database engine
+    engine = create_engine("sqlite:///data.db")
+
+    # Write query to get plumbing call counts by borough
+    query = """SELECT borough, COUNT(*)
+                  FROM hpd311calls
+                  WHERE complaint_type = 'PLUMBING'
+                  GROUP BY borough;"""
+
+    # Query databse and create data frame
+    plumbing_call_counts = pd.read_sql(query, engine)
+
+    query would then return grouped recods with the same value from columb borough, and value of their count 
+
+// LESSON 3.4 - LOADING MULTIPLE TABLES WITH JOINS 
+- relational database can be relate tables using keys 
+
+joining and filtering 
+    /* this is an example of inner join, only the foreign keys avaiable in hpd311calls that matches with weather would be the result */
+    /* Get only heat/hot water calls and join in weather data */
+    SELECT *
+    FROM hpd311calls
+    JOIN weather 
+    ON hpd311calls.created_date = weather.date
+    WHERE hpd311calls.complaint_type = 'HEAT/HOT WATER';
+
+show everything from a single table and a specific column on another table 
+    # Query to get hpd311calls and precipitation values
+    query = """
+    SELECT hpd311calls.*, weather.prcp
+    FROM hpd311calls
+    JOIN weather
+        ON hpd311calls.created_date = weather.date;"""
+
+    # Load query results into the leak_calls data frame
+    leak_calls = pd.read_sql(query, engine)
+
+    # View the data frame
+    print(leak_calls.head())
+
+REVIEW 
+- order of keywords 
+    - SELECT 
+    - FROM 
+    - JOIN 
+    - WHERE 
+    - GROUP BY
+
+// LESSON 4.1 - INTRODUCTION TO JSON 
+- almost same format with javascript's object, like a python's dict 
+- not tabuler thus records desont need to specify null if an attribute has no value or missing value 
+- since json isnt tabular, pandas guesses how to arrange it in a table 
+
+json arrangement 
+    record orientation 
+        - have to repeat values, not memory friendly 
+        example 
+            [{
+                "age":"19",
+                "name":"Renz",
+            },
+            {
+                "age":"20",
+                "name":"Reny",
+            }]
+    column oriented 
+        - more space-efficeint than record-oriented json, but hard to read tho 
+        {
+            "age": {
+                "0":"19",
+                "1":"20",
+            },
+            "name": {
+                "0": "Renz",
+                "1": "Reny"
+            }
+        }
+    split oriented data 
+
+specifying orientation of json 
+    import pandas as pd 
+    death_causes = prd.read_json("nyc_death_json", orient="split")
+
+// LESSON 4.2 - INTRO TO API 
+- defines how a application communicates with other program's server 
+- way to get data from an application without knowing database details 
+- most common source of json 
+- requests library for python but built in fetch for javascript 
+
+requests.get()
+    - to get data from a url 
+    - kargs 
+        - params:takes a dictionary of parameters and values to customize API request
+        - headers: takes a dictionary, can be used to provide user authentication to api 
+    - response.json() to convert a json into a dict
+    
+    making requests 
+        import requests
+        import pandas as pd
+        api_url = "https://api.yelp.com/v3/businesses/search"
+        
+        # Set up parameter dictionary according to documentation
+        # Params is the parameter to be used in fetching data 
+        params = {"term": "bookstore", "location": "San Francisco"}
+        
+        # Set up header dictionary w/ API key according to documentation
+        # API keys are employed to track and moderate API usage, make sure it is hidden
+        headers = {"Authorization": "Bearer {}".format(api_key)}
+        
+        # Call the API
+        response = requests.get(api_url,
+                                params=params,
+                                headers=headers)
+
+        # Extract JSON data from the response
+        data = response.json()
+
+        # Load data to a data frame
+        cafes = pd.DataFrame(data["businesses"])
+
+    parsing responses 
+        # Isolate the JSON data from the response object
+        data = response.json()
+        print(data)
+
+        # Load businesses data to a data frame
+        bookstores = pd.DataFrame(data["businesses"])
+        print(bookstores.head(2))                                  alias        ...                                                    url0   city-lights-bookstore-san-francisco        ...      https://www.yelp.com/biz/city-lights-bookstore...1  alexander-book-company-san-francisco        ...      https://www.yelp.com/biz/alexander-book-compan...[2 rows x 16 columns]{'businesses': [{'id': '_rbF2ooLcMRA7Kh8neIr4g', 'alias': 'city-lights-bookstore-san-francisco', 'name': 'City L
+
+// LESSON 4.3 - WORKING WITH NESTED JSON 
+nested json 
+    - json contain objects with attribute-value pairs 
+    - json is neseted when the value itself is an object 
+
+Unflattened JSON:
+{‘user’ :{
+    ‘Rachel’:{
+        ‘UserID’:1717171717,
+        ‘Email’: ‘rachel1999@gmail.com’,
+        ‘friends’: [‘John’, ‘Jeremy’, ‘Emily’]
+        }
+    }
+}
+
+Flattened JSON:
+{
+    ‘user_Rachel_friends_2’: ‘Emily’, 
+    ‘user_Rachel_friends_0’: ‘John’, 
+    ‘user_Rachel_UserID’: 1717171717, 
+    ‘user_Rachel_Email’: ‘rachel1999@gmail.com’, 
+    ‘user_Rachel_friends_1’: ‘Jeremy’
+}
+
+pandas.io.sjon 
+    - submodule has tools for reading and writing JSON 
+    - json_normalize()
+        - takes a dictionary/list of dictionaryies (like pd.DataFrame() does)
+        - returns a flattened data frame 
+        - default flattened column name pattern: attribute.nestedattribute 
+        - choose a different separator with the sep argument 
+
+loading nested json data 
+    import pandas as pd
+    import requests
+    from pandas.io.json import json_normalize
+    
+    # Set up headers, parameters, and API endpoint
+    api_url = "https://api.yelp.com/v3/businesses/search"
+    headers = {"Authorization": "Bearer {}".format(api_key)}
+    params = {"term": "bookstore", 
+            "location": "San Francisco"}
+            
+    # Make the API call and extract the JSON data
+    response = requests.get(api_url,
+                            headers=headers,
+                            params=params)
+    data = response.json()
+
+    # Flatten data and load to data frame, with _ separators
+    bookstores = json_normalize(data["businesses"], sep="_")
+
+deeply nested data: idk what's happening in here 
+    - json_normalize()
+        - record_path: string/list of string attributes to nested data 
+        - meta: list of other attributes to load to data frame 
+        - meta_prefix: string to prefix to meta column names 
+
+    # Flatten categories data, bring in business details
+    df = json_normalize(data["businesses"],
+                        sep="_",
+                        record_path="categories",
+                        meta=["name", "alias", "rating",
+                        ["coordinates", "latitude"],                           
+                        ["coordinates", "longitude"]],                    
+                        meta_prefix="biz_")
+
+    # look at the results it now looks like a spreadsheet table
+
+// LESSON 4.4 - COMBINING MULTIPLE DATASETS 
+appending 
+    - adding rows from one data frame to another 
+    - append()
+    - syntax: df1.append(df2)
+    - set ignore_index to True to renumber rows 
+
+    # Add an offset parameter to get cafes 51-100
+    params = {"term": "cafe", 
+            "location": "NYC",
+            "sort_by": "rating", 
+            "limit": 50,
+            "offset": 50}
+
+    result = requests.get(api_url, headers=headers, params=params)
+    next_50_cafes = json_normalize(result.json()["businesses"])
+
+    # Append the results, setting ignore_index to renumber rows
+    cafes = top_50_cafes.append(next_50_cafes, ignore_index=True)
+merging 
+    - combining datasets to add reltaed columns 
+    - datasets have key column(s) with common values 
+    - merge(), pandas version of a sql join 
+    - df.merge() arguments 
+        - second data frame to merge 
+        - columns to mergon on 
+            - on if names are the same in both data frames 
+            - left_on and right_on if key names differ 
+            - key columns should be the same data type 
+    - default merge() behavior: return only values that are in both datasets (inner join)
+    - one record for each value match between data frames 
+
+    # Merge crosswalk into cafes on their zip code fields
+    cafes_with_pumas = cafes.merge(crosswalk, 
+                                left_on="location_zip_code", 
+                                right_on="zipcode")
+
+    # Merge pop_data into cafes_with_pumas on puma field
+    cafes_with_pop = cafes_with_pumas.merge(pop_data, on="puma")
+
+    # View the data
+    print(cafes_with_pop.head())
+
+// LESSON X.1 - IMPORTANT  PANDAS FUNCTION 
+loading csv - pd.read_csv("file.csv")
+loading different file format - pd.read_csv("file.tsv", sep="\t")
+show 5 records - pd.read_csv("file.csv").head(5)
+show how many rows or columns - pd.read_csv("file.csv").shape
+filter columns to read/you could also specify name - pd.read_csv("file.csv", usecols=[0,1,2])
+filter no. of rows to read - pd.read_csv("file.csv", nrows=1000)
+print datatypes of each columns - print(pd.read_csv("file.csv").dtypes)
+summary of statistical info - pd.read_json("file.json").describe()
+
+// LESSON X.2 - NEXT THING TO STUDY 
+DATA VISUALIZATION WITH MATPLOTLIB OR SEABORN 
+DATA MANIPULATION WITH PANDAS 
+
+// LESSON X.3 - CONCLUSION - pandas 
+1 - loading flat files, modifying flat file imports, handling errors and missing data in a flat file 
+2 - loading spreadsheets, getting data from multiple worksheets, modifying true/false datatypes, modifying imports: parsing dates 
+3 - loading databases, sql queries, join 
+4 - loading json, intro to api, working with nested jsons, combining different data sources 

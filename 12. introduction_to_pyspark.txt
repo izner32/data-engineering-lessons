@@ -1,0 +1,190 @@
+// LESSON 1.1 - WHAT IS SPARK,ANYWAY
+- spark is a platform for cluster computing 
+- spark lets you spread data and computations over clusters with multiple nodes (think of each node as a sesparate comptuer)
+- splitting up your data makes it easier to work with very large datasets because each node only works with a small amount of data 
+- useful for big data on a single machine 
+- useful if calculations be easily parallelized 
+
+// LESSON 1.2 - USING SPARK IN PYTHON 
+step 1: connecting to a cluster 
+    - cluster will be hosted on aremote machine that's connected to all other nodes 
+    - one computer (master node) that manages splitting up the data and the computations 
+    - masters is connected to the rest of the computer in cluster, which are called worker
+    - master sends the workers data and calculations to run, and they send their results back to the master 
+
+// LESSON 1.3 - EXAMINING THE SPARKCONTEXT 
+# Verify the SparkContext if it exists on your environment
+print(sc)
+
+# Print Spark Version
+print(sc.version)
+
+// LESSON 1.4 - USING DATAFRAMES 
+- spark dataframe was designed to behave a lot like a sql table 
+
+// LESSON 1.5 - CREATING A SPARKSESSION 
+# Import SparkSession from pyspark.sql
+from pyspark.sql import SparkSession
+
+# Create my_spark - creating multiple SparkSession and SparkContext can cause issues, so it's best practice to use the method below 
+my_spark = SparkSession.builder.getOrCreate() # this method reutrns an existing SparkSession if there's already one in the environment, or creates a new one if necessary
+
+# Print my_spark
+print(my_spark)
+
+// LESSON 1.6 - VIEWING TABLES 
+# Print the tables in the catalog - your SparkSession has an attribute called catalog which lists all the data inside the cluster, this attribute has a fewm ethods for extracing different pieces of information, one of them is listTables()
+print(spark.catalog.listTables()) # returns the names of all the tables in your cluster as a list 
+
+// LESSON 1.7 - QUERYING IN SPARK 
+- yes, you could query in spark just like you would do in sql 
+
+# Don't change this query
+query = "FROM flights SELECT * LIMIT 10"
+
+# Get the first 10 rows of flights
+flights10 = spark.sql(query)
+
+# Show the results of your query 
+flights10.show()
+
+// LESSON 1.8 - PANDAFY A SPARK DATAFRAME 
+# Don't change this query
+query = "SELECT origin, dest, COUNT(*) as N FROM flights GROUP BY origin, dest"
+
+# Run the query
+flight_counts = ____
+
+# Convert the results to a pandas DataFrame
+pd_counts = ____
+
+# Print the head of pd_counts
+print(____)
+
+// LESSON 1.9 - SPARKIFY A PANDAS DATAFRAME 
+# Create pd_temp
+pd_temp = pd.DataFrame(np.random.random(10))
+
+# Create spark_temp from pd_temp
+spark_temp = spark.createDataFrame(pd_temp)
+
+# Examine the tables in the catalog
+print(spark.catalog.listTables())
+
+# Add spark_temp to the catalog
+spark_temp.createOrReplaceTempView("temp") # this method safely creates a new temporary table if nothing was there before, or updates an existing table if one was already defined. Use this to avoid running into problems with duplicate tables
+
+# Examine the tables in the catalog again
+print(spark.catalog.listTables())
+
+// LESSON 1.10 - SPARKIFY A TEXT FILE 
+- yes, you can sparkify(convert into spark dataframe) different sources into spark just like in pandas 
+
+# Don't change this file path
+file_path = "/usr/local/share/datasets/airports.csv"
+
+# Read in the airports data
+airports = spark.read.csv(
+    file_path, # 1st argument is the file you wanted to convert into spark dataframe 
+    header=True # take the column names from the first line of the file 
+)
+
+# Show the data
+airports.show()
+
+// LESSON 2.1 - CREATING COLUMNS 
+- spark's dataframe are immutable so if you wanted to update a column you have to overwrite the old one 
+
+# Create the DataFrame flights
+flights = spark.table("flights") # Use the spark.table() method with the argument "flights" to create a DataFrame containing the values of the flights table in the .catalog
+
+# Show the head
+flights.show()
+
+# Add duration_hrs
+flights = flights.withColumn("duration_hrs", flights.air_time/60) # creates a dataframe with the same columns as flights plus a new column, duration_hrs, where every entry is equal to the corresponding entry from air_time / 60
+
+// LESSON 2.4 - FILTERING - equivalent of spark to sql's WHERE
+# Filter flights by passing a string - if passin by a string, it would work just like how it would work with WHERE condition from sql 
+long_flights1 = flights.filter("distance > 1000")
+
+# Filter flights by passing a column of boolean values (not recommended, stick with the method above)
+long_flights2 = flights.filter(flights.distance > 1000)
+
+# Print the data to check they're equal
+long_flights1.show()
+long_flights2.show()
+
+// LESSON 2.5 - SELECTING - equivalent of spark to sql's SELECT 
+# Select the first set of columns
+selected1 = flights.select("tailnum", "origin", "dest")
+
+# Select the second set of columns
+temp = flights.select(flights.origin, flights.dest, flights.carrier)
+
+# Define first filter
+filterA = flights.origin == "SEA"
+
+# Define second filter
+filterB = flights.dest == "PDX"
+
+# Filter the data, first by filterA then by filterB
+selected2 = temp.filter(filterA).filter(filterB)
+
+// LESSON 2.6 - SELECTING II - tbh these are unnecessarily complicated just use sql queries 
+# Define avg_speed + using alias 
+avg_speed = (flights.distance/(flights.air_time/60)).alias("avg_speed")
+
+# Select the correct columns
+speed1 = flights.select("origin", "dest", "tailnum", avg_speed)
+
+# Create the same table using a SQL expression
+speed2 = flights.selectExpr("origin", "dest", "tailnum", "distance/(air_time/60) as avg_speed")
+
+// LESONN 2.7 - USING GROUPBY 
+# Find the shortest flight from PDX in terms of distance
+flights.filter(flights.origin == "PDX").groupBy().min("distance").show()
+
+# Find the longest flight from SEA in terms of air time
+flights.filter(flights.origin == "SEA").groupBy().max("air_time").show()
+
+# Average duration of Delta flights
+flights.filter(flights.carrier == "DL").filter(flights.origin == "SEA").groupBy().avg("air_time").show()
+
+# Total hours in the air
+flights.withColumn("duration_hrs", flights.air_time/60).groupBy().sum("duration_hrs").show()
+
+// LESSON 2.8 - USING PYSPARK.SQL.FUNCTIONS 
+- this submodule contains many useful functions for computign things like standarad deviations 
+
+# Import pyspark.sql.functions as F
+import pyspark.sql.functions as F
+
+# Group by month and dest
+by_month_dest = flights.groupBy("month","dest")
+
+# Average departure delay by month and destination
+by_month_dest.avg("dep_delay").show()
+
+# Standard deviation of departure delay
+by_month_dest.agg(F.stddev("dep_delay")).show()
+
+// LESSON 2.9 - USING JOIN IN SPARK - again, don't do this tho, just use sql queries
+# Examine the data
+airports.show()
+
+# Rename the faa column
+airports = airports.withColumnRenamed("faa", "dest")
+
+# Join the DataFrames
+flights_with_airports = flights.join(airports, on="dest", how="leftouter")
+
+# Examine the new DataFrame
+flights_with_airports.show()
+
+
+
+// LESSON X.1 - PYSPARK CONCLUSION 
+1 - pyspark can ingest data fro multiple sources just like in pandas, you could also create df with spark, you could also convert pandas df into spark df and vice versa 
+2 - you can do sql queries in pyspark and pyspark also has equivalent of doing these sql queries 
+3

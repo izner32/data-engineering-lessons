@@ -1,0 +1,251 @@
+// LESSON 1.1 - DATA ENGINEERING AND BIG DATA 
+data workflow 
+->data collection and storage: data engineer  
+    -> data preparation 
+        -> exploration and visualization 
+            -> experimentation and prediction 
+
+data engineer
+    - ingest data from different sources 
+    - optimized databases for analysis 
+    - remove corrupted data 
+    - develop,construct,test and maintain data architecturs
+big data 
+    - volume 
+    - variety 
+    - velocity 
+    - veracity 
+    - value 
+
+// LESSON 1.2 - DATA ENGINEERS VS DATA SCIENTIST
+data engineer 
+    - ingest and store data
+    - setup databases  
+    - build data pipelines 
+    - strong software skills 
+data scientist 
+    - access databases 
+    - exploit data 
+    - use pipeline outputs 
+    - strong analytical skills 
+
+// LESSON 1.3 - DATA PIPELINES 
+- like a filter for water, it has to go through different process before a data is placed into the database 
+
+example 
+-> spotflix mobile app (this is a pipeline)
+-> spotflix desktop app (this is a pipeline, now you get it huh)
+-> spotflix laptop app 
+    -> data lake 
+        -> data bases (artists)
+        -> data bases (album) -> album pictures database 
+        -> data bases (tracks) -> process/clean -> database 
+        -> data bases (playlist)
+
+data pipelines 
+    - automate extracting, transforming, combining, validating, loading 
+    - reduce human intervention, errors, and decrease time it takes data to flow 
+    - move data from one system to another 
+    - may follow etl 
+    - data may not be transformed 
+    - data may be directly loaded in applications
+etl - extract,transform extracted data, load transformed data to another database 
+    - framework for designing data pipelines 
+
+// LESSON 2.1 - STRUCTURED VS UNSTRUCTURED DATA 
+structured data 
+    - easy to search and organize 
+    - consistent model, rows and columns 
+    - defined types 
+    - can be grouped to form relations 
+    - stored in relational databases 
+    - about 20% of the data is structured 
+    - created and queries using sql 
+    - e.g. table in an sql 
+semi structured data 
+    - relatively easy to search and organize 
+    - consistent model, less rigid implementation: different obvservations have different sizes 
+    - different types 
+    - can be grouped, but needs more work 
+    - nosql databases: json,xml,yaml
+    - e.g. json,xml,yaml 
+unstructured data 
+    - does not follow a model, can't be contained in rows and columns 
+    - difficult to search and organize 
+    - usualyl text,sound, pictures or videos 
+    - usually stored in data lakes, can appear in data warehouses or databases 
+    - most of the data is unstructured 
+    - can be extremely valuable 
+    - e.g. poet,pictures,etc.
+
+// LESSON 2.2 - SQL - structured query language 
+- industry standard for relational database management systems (rdbms)
+- allows access many records at once, and group, filter or aggregate them 
+- data engineers use sql to create,maintain, and update tables  
+- data scientists use sql to query (request information from),filter and aggregate data in tables
+
+data schema 
+    - databases are made of tables 
+    - database schema governs how tables are related
+    - collection of multiple tables but explains how they are related 
+    
+several implementations 
+    - sqlite, mysql, postgresql, oracle sql, etc. 
+    - few things change but most things are the same 
+
+// LESSON 2.3 - DATA WAREHOUSE AND DATA LAKES 
+data lakes 
+    - stores all the raw data (unprocessed and messy)
+    - can be petabytes (1 million gb)
+    - stores all data structures 
+    - cost effective 
+    - dificult to analyze 
+    - requires an up to date data catalog 
+    - used by data scientists 
+    - big data, real time analytics 
+data warehouse 
+    - specific data for specific use 
+    - relatively small 
+    - stores mainly structured data 
+    - more costly to update 
+    - optimized for data analysis 
+    - also used by data anlysts and business analysts
+    - ad-hoc, read-only queries 
+    - e.g. users and their subscription type
+data catalog for data lakes 
+    - somehow a way to organize data in data lakes 
+    - source of truth that compensates for the lack of structure in a data lake 
+    - source of data 
+    - where is this data used 
+    - owner of data 
+    - how often is this data updated 
+data swamp 
+    - data lake with no data catalog 
+database vs data warehouse 
+    database 
+        - general term 
+        - loosely defined as organized data stored and accessed on a computer 
+    data warehouse  
+        - type of database 
+
+// LESSON 3.1 - PROCESSING DATA 
+data processing
+    - covnerting raw data into meaningful information 
+    - remove unwanted data to save memory (can't afford to store files this big)
+    - optimize memory,process and network 
+    - organize data (reorganize data from data lake into data warehouse)
+    - data manipulation, cleaning and tidying tasks 
+    - optimize the performance of database (e.g. indexing the data)
+    - batch processing, stream processing 
+
+// LESSON 3.2 - SCHEDULING DATA 
+- can apply to any task listed in data processing 
+- glue of your system 
+- holds each p[iece and organize how they work together
+- runs tasks in a specific order and resolves all dependencies 
+
+manual scheduling 
+    - manually update the employee table 
+time scheduling 
+    - automatically run at specific time 
+sensor scheduling 
+    - automatically run if specific condition is met 
+
+batches and streams 
+    - how data is ingested 
+    batches 
+        - group records at intervals ( songs uploaded by artists may be batches and sent together to the database every 10 minutes )
+        - often cheaper 
+    streams 
+        - send individual records right away 
+
+scheduling tools 
+    - apache airlow 
+    - luigi 
+
+// LESSON 3.3 - PARALLEL COMPUTING 
+- basis of modern data processing tools 
+- mainly to save memory 
+- also for improving processing power 
+- split tasks up into several smaller subtasks 
+- distribute these subtasks over several computers 
+- moving data incurs a cost 
+    - splitting a task then mergin result of subtask 
+
+// LESSON 3.4 - CLOUD COMPUTING 
+- without cloud computing company has to bear buying servers, need space, and pay for electrical and maintenance cost, waste resources because processing power unsued at quieter times
+- with cloud computing: rent servers, dont need space, use just the resources we need when we need them 
+- cloud is just computer somewhere
+- advantage - database reliability: data replication, but risk with sensitive data 
+- used for storage, computation and database 
+
+top 3 cloud 
+- aws 
+    file storage: aws s3
+    computation: aws ec2
+    database: aws rds 
+- microsoftazure 
+    file storage: azure blob storage 
+    computation: azure virtual machines 
+    database: azure sql database  
+- google cloud 
+    file storage: google cloud storage 
+    computation: google compute engine 
+    database: google cloud sql
+
+multicloud
+    - relying on multiple cloud vendors 
+    - cost efficiencies 
+    - militating against disasters (e.g. aws was down, if you rely them overall you're doomed)
+    - some provider is not compatible with another, fck them 
+
+// LESSON X.1 - CONCLUSION 
+1 - data engineering workflow, data engineer vs data scientist, data pipeline flow 
+2 - structured vs unstructured data, basic sql, data lake vs data warehouse 
+3 - data processing, data scheduling, parallel computing, cloud computing 
+
+// LESSON X.2 - DATA ENGINEERING WORKFLOW 
+ETL (extract,transformation,load) - no data lakes in here 
+    - ingest data from multiple sources (csv,tsv,xlsx,json,DBs)
+        - could use singer, or spark or pandas 
+    - transform and clean data 
+        - batch processing: scheduled processing, collection of data 
+            - use spark 
+            - useful when you know data is only gonna arrive at like end of day, or end of week, or...
+        - stream processing: real time processing, continous data 
+            - use kafka toppic 
+                - use apache spark for stream processing 
+    - load transformed and cleaned data into database 
+        - sql database: this is much preferred 
+            - preferred for structured and related data 
+            - pure sql db cannot be horizontally scaled only vertically but theres some workaround, what you can do is 
+                - convert sql into spark's dataframe and spark's df querying works like its an sql, in this way we could horizontally scaled sql db thru spark 
+        - nosql database
+            - preferred for unstructured and unrelated data 
+            - main advantage is that it can be horizontally scaled, but if we can scale horizontally in sql thru spark, then i dont think this is that useful anymore 
+    - load that database into data warehouse 
+        - determine whether to use OLAP vs OLTP for data warehouse 
+    - schedule workflow using apache airflow 
+    - query from the database from the data warehouse that is to be used for analytics or machine learning algos 
+
+ELT (extract,load,transformation)
+    - ingest data from multiple sources (csv,tsv,xlsx,json,DBs)
+        - could use singer, or spark or pandas 
+    - store scraped data into data lake (put raw data into data lakes) 
+        - organize data by converting it into data catalog (datas are grouped)
+    - grab data from data catalog
+    - transform and clean data (processing) 
+        - batch processing: scheduled processing, collection of data 
+            - use spark 
+            - for faster processing use horizontal scaling(use spark), horizontal scaling(parallel computing) means splitting task into multiple workers instead of vertical scaling whcih means upgrading your cpu or memory which is not cost effective
+                - think of vertical scaling as upgrading hardware, horizontal scaling as adding more hardware 
+                - spark is actually using batch processing (it divides different batches into multiple workers)
+            - useful when you know data is only gonna arrive at like end of day, or end of week, or...
+        - stream processing: real time processing, continous data 
+            - use kafka toppic 
+                - use apache spark for stream processing 
+    - load transformed and cleaned data into database 
+    - load that database into data warehouse 
+        - determine whether to use OLAP vs OLTP for data warehouse 
+    - schedule workflow using apache airflow 
+    - query from the database from the data warehouse that is to be used for analytics or machine learning algos 

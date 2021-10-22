@@ -1,0 +1,183 @@
+// LESSON 1.1 - NORMALISATION
+- organize data and reduce redundant data 
+- improves data integrity 
+- this is useful if you're the one creating the database but you're a database engineer!!! you modify existing database already 
+- there's still alot of thigns i havents finished yet, ill tackle them all when i need them 
+data anomalies 
+    - insertional anomaly 
+    - update anomalies: 
+    - deletion anomaly: 
+1st normal form (1nf)
+    - eliminate repeating groups 
+    - attribute domain does not change 
+    - there is a unique name for every attribute/column 
+    - order in whcih data is stored does not matter 
+    - all relation must have singled valued attribute only 
+
+    example: not 1nf since there are columns which contains multiple value in a single row 
+        ID   Name   Courses
+        ------------------
+        1    A      c1, c2
+        2    E      c3
+        3    M      C2, c3 
+
+    converted into 1nf 
+        ID   Name   Course
+        ------------------
+        1    A       c1
+        1    A       c2
+        2    E       c3
+        3    M       c2
+        3    M       c3
+2nd normal form (2nf)
+    - based on the concept of full functional dependency 
+    - should not contain partial dependency 
+        partial dependency: occurs when a non-prime attribute is functionally dependent on part of a candidate key
+            candidate key: 
+    - applies to relations with composite keys
+        - composite keys are multiple primary keys which can be used to uniquely identify a row 
+    - relation with a single attribute primary key is automatically atleast 2nf 
+    - to be in 2nf, it has to be in 1nf first 
+    
+    example: not 2nf since stud_no and course_no are both primary keys thus forming (composite key)
+        STUD_NO            COURSE_NO        COURSE_FEE
+        1                     C1                  1000
+        2                     C2                  1500
+        1                     C4                  2000
+        4                     C3                  1000
+        4                     C1                  1000
+        2                     C5                  2000
+    
+    converted into 2nf 
+                    TABLE 1                |                TABLE 2 
+        STUD_NO            COURSE_NO       |   COURSE_NO                COURSE_FEE     
+        1                 C1               |   C1                        1000
+        2                 C2               |   C2                        1500
+        1                 C4               |   C3                        1000
+        4                 C3               |   C4                        2000
+        4                 C1               |   C5                        2000        
+        2                 C5               |          
+3rd normal form (3nf)
+    - if no transitive dependency for non-prime attributes 
+        transitive dependency: e.g. if we know the book then we know the author but if we know the author we cannot know the book, that is transitive dependency 
+        non prime attributes: if a value for an attribute can be repeated, or in other words if values isn't unique 
+boyce-codd normal form (bcnf)
+4th normal form 
+5th normal form (pj/nf or pjnf)
+
+CONCLUSION 
+    1NF - NO MULTI VALUE ATTRIBUTE 
+    2NF - NO COMPOSITE KEY, SPLIT THE TABLE | NO PARTIAL DEPENDENCY 
+    3NF - NO TRANSITIVE DEPENDENCY 
+
+// LESSON 1.2 - ACID TRANSACTIONS 
+transaction : single logical unit fo work which accesses and possibly modifies the content of a database 
+    - in other words: a single transaction is equal to single modification of the db 
+- In order to maintain consistency in a database, before and after the transaction, certain properties are followed. These are called ACID properties
+ACID - Atomicity, Consistency, Isolation, Durability 
+Atomicity 
+    - entire transaction takes place at once or doesn't happen at all 
+    - transaction must not occur partially 
+    - all or nothing 
+    abort 
+        - changes made are not visible 
+    commit 
+        - changes made are visible 
+Consistency 
+    - databse must be consistent before and after the transaction 
+Isolation 
+    - multiple transactions occur independently without interference 
+Durability 
+    - changes of a successful transaction occurs even if the system failure occurs 
+
+// LESSON 1.3 - CAP THEOREM 
+CAP - Consistency, Availability, Partition Tolerance 
+- it is not possible to guarantee all three of the desirable properties at the same time in a distributed system with data replication 
+- theorem states that networked shared data system can only strong support two of the following three properties 
+- CAP and ACID do not refer to the same identical concept 
+Consistency 
+    - nodes will have the same copies of a replicated data item visible for various transaction 
+Availability 
+    - each read or write request for a data item will either be processedd successfully or will receive a message that the operation cannot be completed
+Partition Tolerant 
+    - means that the system can continue operating if the network connecting the nodes has a fault that results in two or more partitions 
+
+// LESSON 1.4 - OLTP VS OLAP
+OLAP - Online Analyitical Processing 
+    - type of software tools that are used for data analysis for business decisions
+    - get insights from the database retrieved from multiple database systems at one time 
+    - any type of data warehouse system is an olap system 
+    - used for data mining, analytics, decision making, etc. 
+OLTP - Online Transaction Processing 
+    - OLTP administers day to day transaction of an organization
+    - used for business task 
+    - example: atm center is an oltp 
+    - another example: online banking, online airline ticket booking, etc. 
+
+// LESSON 1.5 - HORIZONTAL VS VERTICAL SCALING 
+- scaling either compress or exapnd the system to meet the expected needs 
+    - can be achieved by adding resources to meet the smaller expectaion in the current system, or by adding a new in the existine one, or both 
+vertical scaling 
+    - e.g. buying bigger machine to meet the expectation 
+    - when new resources are added in the existing system to meet the expectation
+    - cheaper than horizontal scaling and also requires less time to be fixed 
+horizontal scaling 
+    - e.g. buying more machine to meet the expectation 
+    - when new server racks are added in the existing system to meet the higher expectation
+
+// LESSON 1.6 - DIMENSIONAL MODELING 
+- one of the data modelling techniques used in data warehouse design 
+- goal is to improve the data retrieval 
+- advantage of this model is so that we can store data in such a way that it is easier to store and retrieve the data once stored in a data warehouse 
+- used by many olap systems 
+
+steps for dimensional model 
+    identify the business object 
+    identify granularity 
+        - granularity is the lowest level of information stored in the table 
+        - the level of detail for business problem and its solution is described by Grain
+    idetify dimension and attribute 
+        dimensions 
+            - dimensions are objects or things 
+            - dimensions categorize and describe data warehouse facts and measures in a way that supports meaningful answers to business questions.
+            - e.g. data dimension may contain data like a year, motnh and weekday 
+    identify the fact 
+        - measurable data is helf by the fact table 
+        - e.g. numerical values like price or cost per unit, etc.
+    build schema 
+        - we implment dimension model in this step 
+        - a schema is a database structure (how the table must look like somehow like an interface)
+
+// LESSON X.1 - DATABASE TERMS 
+DATABASE - collection of relations 
+DATAFRAME - labeled data structure just like a json, or an object in js or a dict in python 
+RELATIONS - multiple tables are connected to each other 
+TABLE - collection of columns 
+COLUMNS - collection of individual fields/attribute 
+FIELD - single individual column  it describes a particular cell found on any row  
+ATTRIBUTE - single individual value in a column that describes an entity 
+    PRIME ATTRIBUTE - unique value 
+    NON-PRIME ATTRIBUTE - not unique value 
+ROWS - data object 
+TUPLE - one record/row 
+RECORD - just like tuple, row 
+ENTITIY - single row 
+DATA - individual cell data 
+SCHEMA - like a format on how a columns datatype on a table should look like 
+KEYS 
+    PRIMARY KEYS - uniquely identifies every row in that table 
+    FOREIGN KEYS - creates relationship between two tables, allow navigation between two different instance of an entity 
+    COMPOSITE KEY - key that consists of two or more attributes that uniquely identify any row in the table
+    CANDIDATE KEY -  unique and no repeating values just like primary key 
+    SUPER KEY - group of single or multiple keys which can identify rows in a table
+    ALTERNATE KEY - column or group of columns in a table that uniquely identify every row in that table
+    COMPOUND KEY - has two or more attributes that allow you to uniquely recognize a specific record
+    SURROGATE KEY - an artificial key which aims to uniquely identify each record is called a surrogate key
+DEPENDENCIES
+    PARTIAL DEPENDENCIES - occurs when a non prime attribute is dependent on part of a candidate key( or a key which could tell if a an entity is unique )
+    TRANSITIVE DEPENDENCIES - e.g. if we know the book then we know the author but if we know the author we cannot know the book, that is transitive dependency 
+    FUNCTIONAL DEPENDENCIES - 
+DATA PIPELINE - general process by which data moves from one system into another 
+DAG (DIRECTED ACYCLIC GRAPH) - like a data pipeline but then it has subtasks for different cases | like waterfall method once it reaches a level it cannot go back
+UPSTREAM DEPENDENCY - one where something must happen before your project can start something else 
+DOWNSTREAM DEPENDENCY - something your project must deliver before somethin else can start 

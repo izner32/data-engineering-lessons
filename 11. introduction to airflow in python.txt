@@ -1,0 +1,688 @@
+// LESSON 1.1 - INTRODUCTION TO AIRFLOW 
+workflow 
+    - set of steps to accomplish a given data engineering task 
+airflow 
+    - platform to program workflows 
+    - used for creation,scheduling, and monitoring 
+    - implement workflows as DAGs: Directed Acyclic Graphs 
+DAGs 
+    - represents the set of tasks that make up your workflow 
+    - consists of the tasks and the dependencies between tasks 
+
+    sample dag definition or code 
+        etl_dag = DAG(
+            dag_id = 'etl_pipeline',
+            default_args={"start_date":"2020-01-08"}
+        )
+    
+    runing airflow in shell 
+        airflow run <dag_id> <task_id> <start_date> // syntax 
+        airflow run example-etl download-file 2020-01-10
+
+// LESSON 1.2 - AIRFLOW DAGS 
+dags 
+    - directed, there is an inherent flow representing dependencies between components 
+    - acyclic, does not loop/cycle/repeat - but it can be rerun 
+    - graph, the actua lset of components 
+    - seen in airflow,spark,luigi 
+
+    defining a dag with code 
+        from airflow.models import DAG
+        from datetime import datetime
+        default_arguments = {
+            'owner': 'jdoe',
+            'email': 'jdoe@datacamp.com', 
+            'start_date': datetime(2020, 1, 20)
+        }
+        
+        etl_dag = DAG( 'etl_workflow', default_args=default_arguments )
+
+use dag in command line when: 
+    - starting airflow processes 
+    - manually run dags/ tasks 
+    - get logging information from airflow 
+
+    example using of dags 
+        airflow -h | look at airflow commands 
+        airflow list_dags | list all of the active dags 
+        airflow webserver -p 9090 | starting airflow at cmd at port 9090, not a good idea, it's much easier to use airflow ui rather than the cmdline 
+
+use dag in python when: 
+    - create a dag 
+    - edit the individual properties of a dag 
+
+// LESSON 1.3 - AIRFLOW WEB INTERFACE 
+- this is something that can be explained in a descriptive manner 
+- watch this video instead: https://campus.datacamp.com/courses/introduction-to-airflow-in-python/intro-to-airflow?ex=8
+
+web ui vs command line 
+    - equally powerful 
+    - web ui is easier 
+
+// LESSON 2.1 - AIRFLOW OPERATORS 
+operators 
+    - represent a single task in a workflow 
+    - run independently (usually) 
+    - generally do not share information 
+bash operator 
+    - executes a given bash command or script 
+    - runs the command in a temporary directory 
+    - can specify environment variables 
+    
+    samplecode 
+        from airflow.operators.bash_operator import BashOperator 
+        example_task = BashOperator(
+            task_id='bash_example', // name that shows up in the ui
+            bash_command='echo "Example!"', // could also be bash_command='runcleanup.sh' | 
+            dag=ml_dag // dag it belongs to 
+        )
+
+// LESSON 2.2 - AIRFLOW TASKS 
+tasks 
+    - instances of operators 
+    - usually assigned to a variable in python, in the example below example_task is the task 
+        example_task = BashOperator(
+            task_id='bash_example',
+            bash_command='echo "Example!"', 
+            dag=ml_dag 
+        )
+
+task dependencies 
+    - define a given order of task completion 
+    - are not required for a given workflow, but usually present in most 
+    - are referred to as upstream or downstream tasks 
+        >> - upstream opeartor 
+        << - downstream operator 
+    
+    example task dependency 
+        // define the tasks 
+        task1 = BashOperator(
+            task_id='bash_example',
+            bash_command='echo 1', 
+            dag=ml_dag
+        )
+
+        task2 = BashOperator(
+            task_id='bash_example', 
+            bash_command='echo 2', 
+            dag=ml_dag 
+        )
+
+        // set first_task to run before second_task 
+        task1 >> task 2 // we used upstream operator 
+
+        multiple dependency 
+            task1 >> task2 >> task3 // like saying task1->task2->task3 
+        
+        mixed dependecies 
+            task1 >> task 2 << task 3 // like saying task 1 and task 3 -> task 2 
+                example above can be written like this 
+                    task1 >> task 2
+                    task3 >> task 2
+        
+example use case 
+    # Define a new pull_sales task
+    pull_sales = BashOperator(
+        task_id='pullsales_task',
+        bash_command='wget https://salestracking/latestinfo?json',
+        dag=analytics_dag
+    )
+
+    # Set pull_sales to run prior to cleanup
+    pull_sales >> cleanup
+
+    # Configure consolidate to run after cleanup
+    consolidate << cleanup
+
+    # Set push_data to run last
+    consolidate >> push_data
+
+// LESSON 2.3 - ADDITIONAL OPERATORS 
+PythonOperator
+    - just like a bash operator but it runs python code rather than a shell script 
+    - can pass in arguments to the python code 
+
+pythonOperator with python function but no argument 
+    from airflow.operators.python_operator import PythonOperator // to be able to use python operator 
+    
+    def printme():    
+        print("This goes in the logs!")
+
+    // defining the task 
+    python_task = PythonOperator(    
+        task_id='simple_print', // name of function 
+        python_callable=printme, // call this function, do this if without argument
+        dag=example_dag // dag it belongs to 
+    )
+
+another example of pythonOperator usage but with argument 
+    from airflow.operators.python_operator import PythonOperator // to be able to use python operator 
+
+    defsleep(length_of_time):
+        time.sleep(length_of_time)
+
+    sleep_task = PythonOperator(
+        task_id='sleep',
+        python_callable=sleep, // call this function   
+        op_kwargs={'length_of_time': 5} // call this function but with argument 
+        dag=example_dag // dag it belongs to 
+    )
+
+email operator for sending email 
+    from airflow.operators.email_operator import EmailOperator
+    
+    email_task = EmailOperator(    
+        task_id='email_sales_report', // name of task  
+        to='sales_manager@example.com', // where you're gonna send the email 
+        subject='Automated Sales Report', // obvs the subject   
+        html_content='Attached is the latest sales report', // obvs the content   
+        files='latest_sales.xlsx', // file you wanted to send 
+        dag=example_dag
+    )
+
+// LESSON 2.4 - AIRFLOW SCHEDULING 
+dag run 
+    - specific instance of a workflow at a point in time 
+    - can be run manually or via schedule_interval 
+    - main state for each workflow and the tasks within
+        - running 
+        - failed 
+        - success 
+schedule details 
+    start_date 
+        - the date/time to initially schedule the dag run 
+    end_date 
+        - optional attribute for when to stop running new DAG instances 
+    max_tries
+        - optional attribute for how many attempts to make 
+    schedule_interval 
+        - how often to schedule the dag 
+        - between start_date and end_date 
+        - can be defined via cron  
+        
+        cron 
+            ?????
+        timedelta 
+            - found in datetime library 
+            - acessed via from datetime import timedelta 
+            - takes argument of days, seconds, minutes, hours, and weeks 
+            timedelta(days=4,hours=10,minutes=20,seconds=30)
+        presets 
+            airflow scheduler presets 
+                @hourly - cron equivalent: 0 * * * * 
+                @daily - cron equivalent: 0 0 * * * 
+                @weekly - cron equivalent: 0 0 * * 0 
+                @monthly - cron equivalent: 0 0 1 * * 
+                @yearly - cron equivalent: 0 0 1 1 *
+            special presets 
+                None - don't schedule ever, used for manually triggered dags 
+                @once - schedule only once  
+
+// LESSON 3.1 - AIRFLOW SENSORS 
+sensors 
+    - a special kind of operator that waits for a certain condition to be true 
+        - creation of a file 
+        - upload of a database record 
+        - certain response from a web request 
+    - use if uncertain when it will be true 
+    - IMPORTANT: to add task repetition without loop because of sensor's poke_interval
+
+    file sensor 
+        - checks for the existence of a file at a certain location 
+        - can also check if any files exists within a directory 
+
+        sample code 
+            from airflow.contrib.sensors.file_sensor import FileSensor 
+
+            file_sensor_task = FileSensor( // a sensor(special task) used for checking the existence of a file 
+                task_id="file_sense",
+                filepath="salesdata.csv", // look for this filename to exist before continuing
+                poke_interval=300, // repeat the check every 300 seconds or 5 minutes 
+                dag=sales_report_dag
+            )
+
+other sensors 
+    ExternalTaskSensor 
+        - wait for a task in another DAG to complete 
+    HttpSensor 
+        - request a web url and check for content
+    SqlSensor 
+        - runs a sql query to check for content  
+    and many other in airflow.sensors and airflow.contrib.sensors 
+
+// LESSON 3.2 - AIRFLOW EXECUTORS 
+executor 
+    - run tasks 
+    - different executors handle running the tasks differently 
+    - examples 
+        - sequentialexecutor 
+            - default airflow executor 
+            - runs one task at a time 
+            - useful for debugging 
+            - while functional, not really recommended for production 
+        - localexecutor 
+            - runs on a single system 
+            - treats task as processes 
+            - parallelism defined by the user 
+            - can utilize all resources of a given host system 
+        -celeryexecutor
+            - uses a celery backend as task manager 
+            - multiple workey systems can be defined 
+            - significantly more difficult to setup and configure 
+            - extremely powerful method for organizations with extensive workflows
+
+    determining executor 
+        - cat airflow/airflow.cfg | grep "executor= "
+        - you could also do this: airflow list_dags 
+
+// LESSON 3.3 - DEBUGGING AND TROUBLESHOOTING IN AIRFLOW 
+typical issues 
+    - dag won't run on schedule 
+        - problem:check if scheduler is running 
+            - solution:fix by runnign airflow scheduler in terminal 
+        - problem: atleast one schedule_interval hasn't passed 
+            - solution: modify the attributes to meet your expectations 
+        - problem: not enough tasks free within the executor to run 
+            - solution: change executor type or add system resources or add more systems 
+    - dag won't load; SUPER IMPORTANT 
+        - problem: dag not in web ui or not in airflow list_dags 
+            - solution: verify dag file is in correct folder 
+            - solution: determine the dags folder via airflow.cfg 
+    - syntax errors 
+        - to determine do: airflow list_dags or run file with python3 <dagfile.py>
+
+// LESSON 3.4 - SLA AND REPORTING IN AIRFLOW 
+sla 
+    - industry standard, time alloted in a dag or task that should be followed
+    - service level agreement 
+    - within airflow, the amount of time a task or a dag should require to run 
+    - an sla miss is any time the task/dag does not meet the expected timing 
+
+    found under browse -> sla misses
+
+    defining sla 
+        if define sla for each task 
+            task1 = BashOperator(
+                task_id='sla_task',                    
+                bash_command='runcode.sh',                   
+                sla=timedelta(seconds=30),                   
+                dag=dag
+            )
+        if define sla for all of the task 
+            default_args={
+                'sla': timedelta(minutes=20)
+                'start_date': datetime(2020,2,20)
+            }
+            dag = DAG('sla_dag', default_args=default_args)
+general reporting 
+    - options for success/failure/error 
+    default_args={
+        // used for sending messages for success/failure/error 
+        'email': ['airflowresults@datacamp.com'], // email we're gonna send the success/failure/error
+        'email_on_failure': False, // specify if we would send email at failure 
+        'email_on_retry': False, // specify if we would send email at retry 
+        'retries': 3, // how many retries 
+        'email_on_success': True,  // specify if we woudl send an email at success 
+    ...}
+
+// LESSON 4.1 - WORKING WITH TEMPLATES 
+templates 
+    - allow substituting information during a dag run 
+    - provide added flexibility when defining tasks 
+    - created using the jinja templating langauge 
+non templated bashoperator example 
+    - create a task to echo a list of files: 
+        t1 = BashOperator(       
+            task_id='first_task',       
+            bash_command='echo "Reading file1.txt"',       
+            dag=dag)
+        t2 = BashOperator(       
+            task_id='second_task',       
+            bash_command='echo "Reading file2.txt"',       
+            dag=dag)
+templated bashoperator example: used for repeating operators with minor changes at each repeat 
+    - create a task to echo a list of files:
+    // creating templated command 
+    templated_command="""  
+        echo "Reading {{ params.filename }} // just specify the value for this params at the operator
+    """"
+
+    // creating another templated command but use ds_nodash and params.filename 
+    templated_command = """
+        bash cleandata.sh {{ ds_nodash }} {{ params.filename }}
+    """
+    t1 = BashOperator(
+        task_id='template_task', // name of task     
+        bash_command=templated_command, // bash command to execute    
+        params={'filename': 'file1.txt'} // parameter in that command, this would replace the params.filename from the templated command 
+        dag=example_dag // dag it belongs to
+    ) 
+
+// LESSON 4.2 - MORE TEMPLATES 
+more advanced template - could be used for looping 
+    templated_command="""
+    {% for filename in params.filenames %}  // loop thru the array of filenames 
+        echo "Reading {{ filename }}" // do this for each iteration
+    {% endfor %}
+    """
+    t1 = BashOperator(
+        task_id='template_task', // name of the task   
+        bash_command=templated_command, // command to be done    
+        params={'filenames': ['file1.txt', 'file2.txt']} // params you passed to templated comand
+        dag=example_dag) // dag it belongs to 
+advance tempalted emails 
+    # Create the string representing the html email content
+    html_email_str = """
+    Date: {{ ds }}
+    Username: {{ params.username }}
+    """
+
+    email_dag = DAG('template_email_test',
+                    default_args={'start_date': datetime(2020, 4, 15)},
+                    schedule_interval='@weekly')
+                    
+    email_task = EmailOperator(task_id='email_task',
+                            to='testuser@datacamp.com',
+                            subject="{{ macros.uuid.uuid4() }}",
+                            html_content=html_email_str,
+                            params={'username': 'testemailuser'},
+                            dag=email_dag)
+variables 
+    - airflow built in runtime variables 
+    - provides assorted information about dag runs, tasks, and even the system configuration 
+    Execution Date: {{ ds }}                              # YYYY-MM-DD
+    Execution Date, no dashes: {{ ds_nodash }}            # YYYYMMDD
+    Previous Execution date: {{ prev_ds }}                # YYYY-MM-DD
+    Prev Execution date, no dashes: {{ prev_ds_nodash }}  # YYYYMMDD
+    DAG object: {{ dag }}
+    Airflow config object: {{ conf }}
+macros 
+    - a special kind of variable 
+    {{ macros.datetime }}: the datetime.datetime object 
+    {{ macros.timedelta }}: the timedelta object 
+    {{ macros.uuid }}: Python's uuid object 
+    {{ macros.ds_add('2020-04-15',5) }}: modify days from a date, this example returns 2020-04-20
+
+// LESSON 4.3 - BRANCHING 
+- provides conditional logic 
+- using BrnachPythonOperator 
+- takes a python_callable to return the next task id (or list of ids) to follow 
+
+branching example 
+    defbranch_test(**kwargs): // function to be called by BranchPythonOperator must contain **kwargs as argument
+        if int(kwargs['ds_nodash']) % 2 == 0:
+            return'even_day_task'
+        else:
+            return'odd_day_task'
+
+    branch_task = BranchPythonOperator(
+        task_id='branch_task', // name of task 
+        dag=dag, // dag it belongs to 
+        provide_context=True,  // idk what this does, but it seems like this is required to use python_callable     
+        python_callable=branch_test // function it would call 
+    )
+
+    start_task >> branch_task >> even_day_task >> even_day_task2
+    branch_task >> odd_day_task >> odd_day_task2
+
+// LESSON 4.4 - CREATING A PRODUCTION PIPELINE 
+- just a conclusion part, combination of everything we've learned but not really 
+
+from airflow.models import DAG
+from airflow.contrib.sensors.file_sensor import FileSensor
+
+# Import the needed operators
+from airflow.operators.bash_operator import BashOperator
+from airflow.operators.python_operator import PythonOperator
+from datetime import date, datetime
+
+# Python Callable 
+def process_data(**context):
+  file = open('/home/repl/workspace/processed_data.tmp', 'w')
+  file.write(f'Data processed on {date.today()}')
+  file.close()
+
+# defining dag 
+dag = DAG(dag_id='etl_update', default_args={'start_date': datetime(2020,4,1)})
+
+# creating a sensor, operator that needs to be finished before other task executes 
+sensor = FileSensor(task_id='sense_file', 
+                    filepath='/home/repl/workspace/startprocess.txt',
+                    poke_interval=5,
+                    timeout=15,
+                    dag=dag)
+
+# script from shell 
+bash_task = BashOperator(task_id='cleanup_tempfiles', 
+                         bash_command='rm -f /home/repl/*.tmp',
+                         dag=dag)
+
+# calling the python callable we defined above 
+python_task = PythonOperator(task_id='run_processing', 
+                             python_callable=process_data,
+                             dag=dag)
+
+# how the flow of the dag works 
+sensor >> bash_task >> python_task
+
+// run the code in command line 
+airflow test etl_update sense_file -1
+
+// if error due to filesensor, then do this in cmd to create a file
+touch /home/repl/workspace/startprocess.txt
+
+// ------- ANOTHER PIPELINE PRODUCTING USING SLA AND POKE_INTERVAL ------------------------
+
+# import necessary library
+from airflow.models import DAG
+from airflow.contrib.sensors.file_sensor import FileSensor
+from airflow.operators.bash_operator import BashOperator
+from airflow.operators.python_operator import PythonOperator
+from dags.process import process_data
+from datetime import timedelta, datetime
+
+# Update the default arguments and apply them to the DAG
+default_args = {
+  'start_date': datetime(2019,1,1),
+  'sla': timedelta(minutes=90)
+}
+
+# defining dag 
+dag = DAG(dag_id='etl_update', default_args=default_args)
+
+# defining sensor 
+sensor = FileSensor(task_id='sense_file', 
+                    filepath='/home/repl/workspace/startprocess.txt',
+                    poke_interval=45, # repeat task every 45 seconds 
+                    dag=dag)
+
+# defining task 
+bash_task = BashOperator(task_id='cleanup_tempfiles', 
+                         bash_command='rm -f /home/repl/*.tmp',
+                         dag=dag)
+
+python_task = PythonOperator(task_id='run_processing', 
+                             python_callable=process_data,
+                             provide_context=True,
+                             dag=dag)
+
+# defining the flow 
+sensor >> bash_task >> python_task
+
+// ------- ANOTHER PIPELINE PRODUCTING USING PYTHONBRANCHOPERATOR ------------------------
+# import necessary library 
+from airflow.models import DAG
+from airflow.contrib.sensors.file_sensor import FileSensor
+from airflow.operators.bash_operator import BashOperator
+from airflow.operators.python_operator import PythonOperator
+from airflow.operators.python_operator import BranchPythonOperator
+from airflow.operators.dummy_operator import DummyOperator
+from airflow.operators.email_operator import EmailOperator
+from dags.process import process_data
+from datetime import datetime, timedelta
+
+# Update the default arguments and apply them to the DAG.
+default_args = {
+  'start_date': datetime(2019,1,1),
+  'sla': timedelta(minutes=90)
+}
+    
+# define dag 
+dag = DAG(dag_id='etl_update', default_args=default_args)
+
+# define sensor 
+sensor = FileSensor(task_id='sense_file', 
+                    filepath='/home/repl/workspace/startprocess.txt',
+                    poke_interval=45,
+                    dag=dag)
+
+# define the bash script 
+bash_task = BashOperator(task_id='cleanup_tempfiles', 
+                         bash_command='rm -f /home/repl/*.tmp',
+                         dag=dag)
+
+# define python script 
+python_task = PythonOperator(task_id='run_processing', 
+                             python_callable=process_data,
+                             provide_context=True,
+                             dag=dag)
+
+# templated commands which you could substitute values inside curly brackets 
+email_subject="""
+  Email report for {{ params.department }} on {{ ds_nodash }}
+"""
+
+# use templated command on email operator 
+email_report_task = EmailOperator(task_id='email_report_task',
+                                  to='sales@mycompany.com',
+                                  subject=email_subject,
+                                  html_content='',
+                                  params={'department': 'Data subscription services'},
+                                  dag=dag)
+
+# creating dummy operator, much like not so useful operator 
+no_email_task = DummyOperator(task_id='no_email_task', dag=dag)
+
+# conditional statement that would determine which branch operator to pick from 
+def check_weekend(**kwargs):
+    dt = datetime.strptime(kwargs['execution_date'],"%Y-%m-%d")
+    # If dt.weekday() is 0-4, it's Monday - Friday. If 5 or 6, it's Sat / Sun.
+    if (dt.weekday() < 5):
+        return 'email_report_task'
+    else:
+        return 'no_email_task'
+
+# branch python operator that picks from the two branch based on the condition 
+branch_task = BranchPythonOperator(task_id='check_if_weekend',
+                                   python_callable=check_weekend,
+                                   provide_context=True,
+                                   dag=dag)
+
+
+# defining the flow of the dag 
+sensor >> bash_task >> python_task
+
+python_task >> branch_task >> [email_report_task, no_email_task]
+
+
+// LESSON X.1 - SAMPLE CREATING DAGS, TASKS, AND TASKS DEPENDENCY - BOILERPLATE 
+from datetime import datetime 
+from datetime import timedelta // for using timedelta 
+from airflow.operators.bashoperator import BashOperator // for creating bash operator 
+from airflow.operators.python_operator import PythonOperator // for creating python operator 
+from airflow.operators.email_operator import EmailOperator // for creating email operator 
+from airflow.contrib.sensors.file_sensor import FileSensor // for creating special operator(sensor) file sensor
+from airflow.models import DAG // for creating dags 
+
+// creating argument for dag 
+default_args = {
+    'owner': 'Engineering', // owner of dag 
+    'start_date': datetime(2019, 11, 1), // when the dag would start 
+    // used for sending messages for success/failure/error or general reporting in short for the sla 
+    'email': ['airflowresults@datacamp.com'], // email we're gonna send the success/failure/error
+    'email_on_failure': False, // specify if we would send email at failure 
+    'email_on_retry': False, // specify if we would send email at retry 
+    'email_on_success': True,  // specify if we woudl send an email at success 
+    'retries': 3, // how many retries 
+    'retry_delay': timedelta(minutes=20),
+    'sla': timedelta(minutes=30) // amount of time a dag should run, we could also specify this to a task | if run time is exactly or below the specified sla then it's successful
+}
+
+// creating dag 
+codependency_dag = DAG(
+    'codependency', // 
+    default_args=default_args //
+    schedule_interval='30 12 * * 3' // scheduling dag(how often will this dag run, e.g. daily,hourly,etc.) using cron, but you could also use timedelta object or preset 
+)
+
+// creating tasks or operator, remember operators only run once per dag run 
+bash_task = BashOperator( // bashoperator - for runnign shell scripts 
+    task_id='first_task', // name of the task 
+    bash_command='echo 1', // what would the task do, can also be a shell script 
+    dag=codependency_dag // what dag does it belong to
+    sla= timedelta(minutes=30) // amount of time this task should run, if this task run more than this sla time especified, send an email from the one we specified in default_args
+)  
+
+python_task = PythonOperator( // pythonoperator - for running python functions 
+    task_id='simple_print', // name of function 
+    python_callable=printme, // call this function, do this if without argument
+    provide_context = True, // nvm this this just needs to be here 
+    dag=codependency_dag // dag it belongs to 
+)
+
+// email operator could take advantage of templated commands but we won't do it here 
+email_task = EmailOperator( // emailoperator - for sending emails 
+    task_id='email_sales_report', // name of task  
+    to='sales_manager@example.com', // where you're gonna send the email 
+    subject='Automated Sales Report', // obvs the subject   
+    html_content='Attached is the latest sales report', // obvs the content   
+    files='latest_sales.xlsx', // file you wanted to send 
+    dag=codependency_dag // daig it belongs to 
+)
+
+// sensor - can be used to repeat task without the need of loop | poke_interval makes it possible, operator doesn't have this 
+file_sensor_task = FileSensor( // a sensor(special task) used for checking the existence of a file 
+    task_id="file_sense", // name of task 
+    filepath="salesdata.csv", // look for this filename to exist before continuing
+    poke_interval=300, // repeat the check every 300 seconds or 5 minutes 
+    dag=codependency_dag // dag it belongs to 
+)
+
+// creating templated command - meaning we coudl substitute value that is wrapped with curly brace
+// creating templated command but use ds_nodash and params.filename 
+// there are even more advance templates but we'll stick with the common one | advance template could loop an operator/task 
+templated_command = """
+    bash cleandata.sh {{ ds_nodash }} {{ params.filename }} // ds_nodash means YYYYMMDD, ds_nodash is also a variable look at 4.2 lesson
+"""
+t1 = BashOperator(
+    task_id='template_task', // name of task     
+    bash_command=templated_command, // bash command to execute    
+    params={'filename': 'file1.txt'} // parameter in that command, this would replace the params.filename from the templated command 
+    dag=example_dag // dag it belongs to
+) 
+
+// i didn't apply branching in here but just have a look at lesson 4.3 and lesson 4.4(example of production pipeline)
+
+// creating task dependency or flow of the task - remember it cannot be in a loop 
+// in here we used upstream (>>) which means bash_task has to be accomplished first before going into python_task 
+bash_task >> python_task >> email_task >> file_sensor_task
+
+// check what kind of executor did you use, type in terminal: airflow list_dags 
+
+// LESSON X.2 - CONCLUSIONS  
+- workflow/dags 
+- operators(BashOperator,Pythonoperator,EmailOperator)
+- tasks 
+- dependecies/bitshift operators (upstream,downstream)
+- sensors 
+- scheduling 
+- sla/alerting
+- templates 
+- branching (BranchPythonOperator)
+- airflow command line/ui 
+- airflow executors 
+- debugging/troubleshooting 
+- study these more 
+    - xcom 
+    - connections 
+    - managing ui further 

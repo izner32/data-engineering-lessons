@@ -1,0 +1,360 @@
+// LESSON 1.1 - 
+efficient 
+    - minimal completion time (fast runtime)
+    - minimal resource consumption (small memory footprint)
+defining pythonic: python's intended to be readable so write readable one! 
+    # Non-Pythonic 
+    doubled_numbers = [] 
+
+    for i in range(len(numbers)):
+        doubled_numbers.append(numbers[i] * 2)
+    
+    # Pythonic 
+    doubled_numbers = [x * 2 for x in numbers]
+
+// LESSON 1.2 - BUILDING WITH BUILT-INS 
+range()
+    - create a list easily 
+    - range (start,stop,interval)
+        - range (0,11,2)
+    - range(start,stop)
+        - range (0,11)
+    - range (stop)
+        - range (11)
+enumerate()
+    - creates an indexed list of objects 
+    code 
+        letters = ["a","b","c","d"]
+        indexed_letters = enumerate(letters)
+
+        indexed_letters_list = list(indexed_letters)
+        print(indexed_letters_list) # print [(0, "a"), (1, "b"), (2, "c"), (3, "d")]
+
+        # Rewrite the for loop to use enumerate
+        indexed_names = []
+        for i,name in enumerate(names):
+            index_name = (i,name)
+            indexed_names.append(index_name) 
+        print(indexed_names)
+
+        # Rewrite the above for loop using list comprehension
+        indexed_names_comp = [(i,name) for i,name in enumerate(names)]
+        print(indexed_names_comp)
+
+        # Unpack an enumerate object with a starting index of one
+        indexed_names_unpack = [*enumerate(names, 1)]
+        print(indexed_names_unpack)
+map() 
+    - think of this as transforming each item in the array 
+    - applies function to each of item inside the list 
+    code 
+        nums = [1.5, 2.3, 3.4]
+        rnd_nums = map(round, nums)
+        print(list(rnd_nums))
+
+        #using maps 
+        sqrd_nums = map(lambda x: x ** 2, nums)
+
+// LESSON 1.3 - NUMPY ARRAYS 
+- always prefer numpy than array, since it contains homogeneous data types (which reduces memory consumption)
+- alternative to python lists, that has alot of built in methods 
+    code 
+        import numpy as np 
+
+        # creating a numpy 
+        nums_np = np.array(range(5))
+
+        # numpy as homogenity or one datatype for all values 
+        nums_np_ints = np.array([1,2,3])
+        nums_np_ints.dtype # this would return int 
+
+        # numpy array broadcasting | just like in list's map 
+        nums = [-2, -1, 0, 1 , 2]
+        nums ** 2 # this would return [4, 1, 0, 1, 4]
+
+        # basic 1-d indexing | same just like in list 
+        nums_np = np.array(nums)
+        nums_np[2]
+
+        # basic 2-2 indexing for numpy arrays 
+        nums2_np[0,1] # for numpy 
+        nums[0][1] # for list 
+
+        # numpy array boolean indexing 
+        nums = [-2, -1, 0, 1, 2]
+        nums_np = np.array(nums)
+        nums_np > 0 # this would return array([False, False, Flase, True, True])
+
+        # Print second row of nums
+        nums = [[1,2,3,4,5][6,7,8,9,10]]
+        print(nums[1,:]) # this would print [6,7,8,9,10]
+
+        # Print all elements of nums that are greater than six
+        print(nums[nums > 6]) # this would print [7,8,9,10]
+
+        # Double every element of nums
+        nums_dbl = nums * 2
+        print(nums_dbl)
+
+        # Replace the third column of nums
+        nums[:,2] = nums[:,2] + 1
+        print(nums)
+
+// LESSON 2.1 - EXAMINING RUNTIME 
+- calculate runtime with ipython magic command: %timeit
+
+example code 
+    %timeit rand_nums = np.random.rand(1000)
+
+    specifying number of runs/loops 
+        # Set number of runs to 2 (-r2)
+        # Set number of loops to 10 (-n10)
+        %timeit -r2 -n10 rand_nums = np.random.rand(1000)
+
+    saving output 
+        # adding -o 
+        times = %timeit -o rand+nums = np.random.rand(1000)
+
+        # now get the best times among those test 
+        times.timings # produce all timings 
+        times.best 
+        times.worst 
+
+    comparing which one is faster in creating dict 
+    l_time = %timeit -o dict = {} # you could see that this is way faster 
+    f_time = %timeot -o dict1 = dict()
+
+// LESSON 2.2 - CODE PROFILING FOR RUNTIME 
+- detailed stats on frequency and duration of function calls 
+- with %timeit you have to do it line by line which is very inefficient 
+- this gives you detail as if you're doing %timeit on each line of the function
+
+code profiling: line_profiler 
+    using line_profiler package 
+        %load_ext line_profiler 
+    magic commadn for line-by-line times 
+        %lprun -f 
+    magic commadn for line-by-line times | just like typing %timeit at each line of the function 
+    %lprun -f convert_units convert_units(heroes, hts, wts)
+
+// LESSON 2.3 - CODE PROFILING FOR MEMORY USAGE 
+quick and dirty approach 
+    import sys 
+    nums_list = [*range(1000)]
+    sys.getsizeof(nums_list) # would produce 9112, this means this uses 9112 byte of memory 
+
+    import numpy as np 
+    nums_np = np.array(range(1000))
+    sys.getsizeof(nums_np) # would produce 8096, you could see numpy is more efficient than using array 
+
+code profiling: memory 
+    - detailed stats on memory consumption 
+    - line-by-line analyses 
+    - pip install memory_profiler 
+    - functions must be imported when using memory_profiler 
+    - small memory output would typically produce 0.0 mib  
+    how to use 
+        - %load_ext memory_profiler 
+        - %mprun -f convert_units convert_units(heroes, hts, wts)
+    code 
+        %load_ext memory_profiler 
+        
+        from hero_funcs improt convert_units 
+        
+        %mprun -f convert_units convert_units(heroes, hts, wts)
+
+// LESSON 3.1 - EFFICIENTLY COMBINING, COUNTING, AND ITERATING THRU ARRAY 
+efficient combining 
+    - better way to add two arrays and combine them, just like mapping but more efficient 
+    # Combine names and primary_types
+    numbers = [1, 2, 3]
+    letters = ['a', 'b', 'c']
+    zipped = zip(numbers, letters)
+    print(zipped) # [(1, 'a'), (2, 'b'), (3, 'c')]
+
+    # Combine five items from names and three items from primary_types
+    differing_lengths = [*zip(names[:5], primary_types[:3])]
+
+    print(*differing_lengths, sep='\n')
+efficient counting 
+    from collections import Counter
+    list1 = ['x','y','z','x','x','x','y','z']
+    print(Counter(list1)) # Counter({'x': 4, 'y': 2, 'z': 2})
+
+    # Collect the count of primary types
+    type_count = Counter(primary_types)
+    print(type_count, '\n')
+
+    # Collect the count of generations
+    gen_count = Counter(generations)
+    print(gen_count, '\n')
+
+    # Use list comprehension to get each Pokémon's starting letter
+    starting_letters = [name[0] for name in names]
+
+    # Collect the count of Pokémon for each starting_letter
+    starting_letters_count = Counter(starting_letters)
+    print(starting_letters_count)
+efficient iterating 
+    - this is basically the combination from probability
+    - probably not useful
+    pokemon = ['Geodude', 'Cubone', 'Lickitung', 'Persian', 'Diglett']
+    
+    # Import combinations from itertools
+    from itertools import combinations
+
+    # Create a combination object with pairs of Pokémon
+    combos_obj = combinations(pokemon, 2)
+    print(type(combos_obj), '\n') # <class 'itertools.combinations'>
+
+    # Convert combos_obj to a list by unpacking
+    combos_2 = [*combos_obj]
+    print(combos_2, '\n') # [('Geodude', 'Cubone'), ('Geodude', 'Lickitung'), ('Geodude', 'Persian'), ('Geodude', 'Diglett'), ('Cubone', 'Lickitung'), ('Cubone', 'Persian'), ('Cubone', 'Diglett'), ('Lickitung', 'Persian'), ('Lickitung', 'Diglett'), ('Persian', 'Diglett')] 
+
+    # Collect all possible combinations of 4 Pokémon directly into a list
+    combos_4 = [*combinations(pokemon, 4)]
+    print(combos_4) # [('Geodude', 'Cubone', 'Lickitung', 'Persian'), ('Geodude', 'Cubone', 'Lickitung', 'Diglett'), ('Geodude', 'Cubone', 'Persian', 'Diglett'), ('Geodude', 'Lickitung', 'Persian', 'Diglett'), ('Cubone', 'Lickitung', 'Persian', 'Diglett')]
+
+// LESSON 3.2 - SET THEORY - useful when comparing two lists 
+comparing 
+    - more efficient when comparing two lists because of its built in functions 
+    - example only shows intersection but there are also difference(present in A but not in b),union(present in both but only unique), and symmetic_difference(exists only in 1 set)
+    lists 
+        list_a = ['Bulbasaur', 'Charmander', 'Squirtle']
+        list_b = ['Caterpie', 'Pidgey', 'Squirtle'] 
+        in_common = []
+        for pokemon_a in list_a:
+            for pokemon_b in list_b:
+                if pokemon_a == pokemon_b:
+                    in_common.append(pokemon_a)
+        print(in_common)
+    sets 
+        list_a = ['Bulbasaur', 'Charmander', 'Squirtle']
+        list_b = ['Caterpie', 'Pidgey', 'Squirtle'] 
+        print(set_a.intersection(set_b)) # {'Squirtle'}
+searching 
+    - searching using keyword "in" is much faster in sets compared to lists and tuples
+    pokemon = (")
+    if "Zubat" in pokemon 
+gathering unique 
+    list_a = [1,2,3,4,2,3,5]
+    print(set(list_a)) # [1,2,3,4,5] | only produce unique resutls 
+
+// LESSON 3.3 - ELIMINATIONS LOOPS 
+- for,while,nested loops are costly, be careful when using them 
+- remember in python's zen - flat is better than nested 
+
+eliminating loops with built in 
+    # List of HP, Attack, Defense, Speed 
+    poke_stats = [
+        [90, 92, 75, 60],
+        [12, 42, 645, 64],
+        [91, 23, 43, 54],
+    ]
+
+    # for loop approach - slowest, hard to read 
+    totals = [] 
+    for row in poke_stats:
+        totals.append(sum(row))
+
+    # list comprehension - medium speed, quite easy to read 
+    totals_comp = [sum(row) for row in poke_stats]
+
+    # built in map() function - fastest, somehow harder to read than list comprehension
+    totals_map = [*map(sum,poke_stats)]
+eliminating loops iwth numpy 
+    loops without numpy 
+        avgs = [] 
+        for row in poke_stats:
+            avg = np.mean(row)
+            avgs.append(avg)
+        print(avgs)
+    loops with numpy
+        avgs_np = poke_stats.mean(axis=1)
+        print(avgs_np)
+
+// LESSSON 3.4 - WRITING BETTER LOOPS 
+- move one time calculations outside the loop 
+- use holistic conversions outside the loop 
+- anything that is done once shuld be outside the loop 
+
+example of good loop 
+    # Import Counter
+    from collections import Counter
+
+    # Collect the count of each generation
+    gen_counts = Counter(generations)
+
+    # Improve for loop by moving one calculation above the loop
+    total_count = len(generations)
+
+    for gen,count in gen_counts.items():
+        gen_percent = round(count / total_count * 100, 2)
+        print('generation {}: count = {:3} percentage = {}'
+            .format(gen, count, gen_percent))
+
+// LESSON 4.1 - ITERATING ROW BY ROW WITH ITERROWS - looping over a dataframe 
+efficient iterating row by row with .iterrows()
+    - iterrows() returns each dataframe row as a tuple of (index, pandas series) pairs, you can either split this tuple and use the index and row-values separately 
+    
+    code for iterrows with 1 variable in for loop
+        # Print the row and type of each row
+        for row_tuple in pit_df.iterrows():
+            print(row_tuple)
+            print(type(row_tuple))
+
+    code for iterrows with 2 variable in for loop
+        - these and above basically outputs the same thing 
+        - if using i,row, you can access things from the row using square brackets (i.e., row['Team']). If using row_tuple, you would have to specify which element of the tuple you'd like to access before grabbing the team name (i.e., row_tuple[1]['Team'])
+        # Iterate over pit_df and print each row
+        for x,row in pit_df.iterrows():
+            print(row) 
+
+// LESSON 4.2 - ANOTHER ITERATOR METHOD: ITERTUPLES
+- just like iterrows that runs row by row except it's faster 
+- more efficient than iterrows because of the way each value is stored 
+- returns each DataFrame row as a special data type called a namedtuple
+    sample code 
+        # Loop over the DataFrame and print each row's Index, Year and Wins (W)
+        for row in rangers_df.itertuples():
+            i = row.Index
+            year = row.Year
+            wins = row.W
+            
+            # Check if rangers made Playoffs (1 means yes; 0 means no)
+            if row.Playoffs == 1:
+                print(i, year, wins)
+
+// LESSON 4.3 - PANDAS ALTERNATIVE TO LOOPING 
+pandas .apply() method 
+- like a map() 
+- lets you apply function to all rows or columns of a df by specifying an axis 
+
+code 
+    # Gather sum of all columns
+    stat_totals = rays_df.apply(sum, axis=0) #axis 0 means column 
+    print(stat_totals) # like groupby and sum in sql 
+
+    # Gather sum of rows specified 
+    total_runs_scored = rays_df[['RS', 'RA']].apply(sum, axis=1)
+    print(total_runs_scored)
+
+    # Convert numeric playoffs to text by applying text_playoffs()
+    textual_playoffs = rays_df.apply(lambda row: text_playoffs(row['Playoffs']), axis=1)
+    print(textual_playoffs)
+
+// LESSON 4.4 - OPTIMAL PANDAS ITERATING 
+- avoid loops when working with python and pandas 
+- pandas are built within numpy which is built in python 
+
+power of vectorization 
+- broadcasting (vectorizing) is extremely efficient 
+    code 
+        run_diffs_np = baseball_df['RS'].values - baseball_df['RA'].values
+        baseball_df['RD'] = run_diffs_np
+
+// LESSON X.1 - CONCLUSION 
+1 - keep lines of code as short as possible, built ins - (range(),enumerate(),map()), numpy alt for list 
+2 - examine runtime speed with %timeit, code profoling for runtime with %lprun, code profiling for memory usage with %lprun
+3 - efficient comparing, seraching, and gathering unique values in a collection (instead of list,or tuple, use set), eliminate loops by using map or list comprehension 
+4 - write efficiently with pandas: iterate row by row with iterrows, itertuples(same but better than iterrows), pandas apply() for iterating in each row with a function, since pandas is built with numpy do take advantage of broadcasting 

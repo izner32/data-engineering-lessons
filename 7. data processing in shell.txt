@@ -1,0 +1,140 @@
+// LESSON 1.1 - DOWNLOADING DATA USING CURL 
+CURL 
+    - Client for URL 
+    - unix cmd tool 
+    - transfers data to and from a server 
+    - used to download data from http(s) and ftp 
+checking curl installation: man curl 
+syntax: curl [command flag] [url]
+command flags: 
+    -L : this command flag is for donwloading from a redirected url 
+        renaming a file: curl -o newNameOfDataFile.txt -L https://webistename.com/datafilename.txt 
+renaming a file: curl -o newNameOfDataFile.txt https://webistename.com/datafilename.txt | -o smaller o means renaming the file 
+downloading multiple files using wildcards: curl -O https://websitename.com/datafilename*.txt | download everything that has this format, we used wildcard * asterisk here 
+downloading multiple files using globbing parser: curl -O https://websitename.com/datafilename[001-100].txt
+downloading multiple files using globbing parser but with incrementation of 10: curl -O https://websitename.com/datafilename[001-100:10].txt
+
+// LESSON 1.2 - DOWNLOADING DATA USING WGET 
+wget 
+    - native to linux but compatible for all os 
+    - better than curl at downloading multiple files recursively 
+check wget installation: which wget 
+syntax: wget [command flag] [url]
+command flags: 
+    -i : acces url stored in a multi liend text document
+    -b : go to background immediately after startup
+    -q : turn off the wget output 
+    -c : resume broken download (i.e. continue getting a partially-downloaded file)
+donwloading a single: wget -bqc https://websitename.com/datafilename.txt | yep you can use them all 
+
+// LESSON 1.3 - ADVANCED DOWNLOADING USING WGET 
+multiple file downloading 
+    save a list of file locations in a text file 
+    display content: cat url_lists.txt 
+    wget -i url_list.txt - grab the content of url_lists to start the download
+setting download constraints for large files 
+    - set upper download bandwitdh limit with --limit-rate 
+    wget --limit-rate={rate}k -i [fileLocation]
+    wget --limit-rate=200k -i url_list.txt 
+setting download constraints for small files 
+    - set a mandatory pause time in seconds between file downloads with --wait 
+    wget --wait={seconds} {filenLocation}
+    wget --wait=2.5 -i url_list.txt 
+
+curl advantages 
+    - can be used for downloading and uploading files from 20+ protocols 
+    - easier to install across all os 
+wget advantages 
+    - has many built in functionalities for handling multiple file downloads 
+    - can handle various file formats for donwload (e.g. file directory, html page)
+
+// LESSON 2.1 - GETTING STARTED WITH CSVKIT 
+installation: pip install csvkit 
+looking for help 
+    in2csv -h | use command flag -h 
+converting files to csv 
+    data we want is in first sheet 
+        in2csv SpotifyData.xlsx > SpotifyData.csv 
+    data we want is not in first sheet 
+        print all sheet names first 
+            in2csv -n SpotifyData.xlsx | you could also use --names instead of -n
+        in2csv SpotifyData.xlsx --sheet "Worksheet1_Popularity" > Spotify_Popularity.csv | converting worksheet1 into csv, we also renamed it into "Worksheet1_Popularity"
+data preview instead of cat 
+    csvlook Spotify.csv
+descriptive stats on csv just like describe in pandas 
+    csvstat Spotify.csv 
+
+// LESSON 2.2 - FILTERING DATA USING CSVKIT 
+filter data using column name or position 
+    csvcut 
+        usage 
+            csvcut -h 
+            csvcut -n Spotify.csv | print all column names in Spotify.csv 
+            csvcut -c 1 Spotify.csv | only show the first column 
+            csvcut -c 2,3 Spotify.csv | show column 2 and 3 
+            csvcut -c "track_id" Spotify.csv | only show the column that is specified 
+            csvcut -c "track_id","duration_ms" Spotify.csv | show two columns that was specified 
+filter daya by row value through exact math, pattern matching, or even regex 
+    csvgrep 
+        must be paired with one of these command flags 
+            -m: folowed by the exact row value to filter 
+            -r: folowed with a regex pattern 
+            -f: followed by the path to a file 
+        usage 
+            csvgrep -c "track_id" -m 5asdfasdfas Spotify.csv | show rows that has this track id value
+
+// LESSON 2.3 - STACKING DATA AND CHAINING COMMANDS WITH CSVKIT 
+stacking multiple csv files 
+    csvstack: stacks/add up the rows from two or more csv files 
+        addtl info
+            two files you're mergin must have the same schema (or format on how the table should look like)
+        usage 
+            csvstack Spotify_Rank6.csv Spotify_Rank7.csv > Spotify_AllRanks.csv | stack rank6 and rank7 then put them in a file caled Spotify_AllRanks.csv 
+        renaming the group to something else, in this case "source", use -n to rename 
+            csvstack -g "Rank6", "Rank7" -n "source" \
+            Spotify_Rank6.csv Spotify_Rank7.csv > Spotify_AllRanks.csv 
+        while stacking the 2 files, create a data source column
+            csvstack -g "Sep2018","Oct2018" Spotify201809_subset.csv Spotify201810_subset.csv > Spotify_all_rankings.csv
+chaining command line commands 
+    ; - links commands together and runs sequentially 
+    example     
+        csvlook SpotifyData_All.csv; csvstat SpotifyData_All.csv
+    && - would only execute the 2nd command if the 1st command is successful 
+    > - redirect output into the file specified next 
+    | - pipe, doing the command based on the previous command's output, think of this as pipeline 
+
+// LESSON 3.1 - PULLING DATA FROM DATABASE 
+sql2csv 
+    - executes an sql query on a large variety of sql databases (e.g. mssql,mysql,postgresql)
+    - outputs the result to a csv file 
+
+    sample syntax - in this case, saving result into Spotify_Popularity.csv 
+        sql2csv --db "sqlite:///SpotifyDatabase.db" \
+        --query "SELECT * FROM Spotify_Popularity" \ 
+        > Spotify_Popularity.csv
+    
+    establishing database connection 
+        --db is followed b the database connection string 
+        example: postgres starts with postgres:/// and end with no .db 
+
+// LESSON 3.2 - MANIPULATING DATA USING SQL SYNTAX 
+csvsql
+    - applies sql statements to one or more csv files 
+    - creates an in-memory sql database that temporarily hosts the file being processed 
+    - suitable for small to medium files only 
+
+    sample code 
+        csvsql --query "SELECT * FROM Spotify_MusicAttributes LIMIT 1" \
+        Spotify_MusicAttributes.csv | csvlook // you could also do > OneSongFile.csv to save result at onesongfile 
+    
+    sample joining file using csvsql
+        # Store SQL query as shell variable
+        sql_query="SELECT ma.*, p.popularity FROM Spotify_MusicAttributes ma INNER JOIN Spotify_Popularity p ON ma.track_id = p.track_id"
+
+        # Join 2 local csvs into a new csv using the saved SQL
+        csvsql --query "$sql_query" Spotify_MusicAttributes.csv Spotify_Popularity.csv > Spotify_FullData.csv
+
+        # Preview newly created file
+        csvstat Spotify_FullData.csv
+
+// LESSON 3.3 - PUSHING DATA BACK TO DATABASE 

@@ -1,0 +1,70 @@
+// LESSON X.1 - NOSQL CONCEPTS 
+relational databases
+    - works better on structured and related data 
+    - uses tables/rows/columns
+    - need a predefined schema
+    - slow queries when joining multiple tables 
+    - vertically scalable 
+        - upgrading hardware 
+        - more expensive 
+    - but it could be horizontally scaled if you convert sql into spark's dataframe(and spark's df could be queried like it's an sql)
+    - guarantee acid transactions
+    - typically closed source 
+nosql
+    - work better on both unstructured and unrelated data 
+    - non-relational databases 
+    - dont use table/rows/columns
+    - schema-less/easy changes 
+    - fast queries 
+    - horizontal scalable 
+    - most dont support acid transaction
+    - open source
+
+    4 major types of nosql 
+        key value databases 
+            - key value pair 
+            - simple nosql databases 
+            - get/set values with associated key 
+            - can be thinked of as like a pair inside dictionary in python or objects in javascript 
+            - e.g. user:457:preferences : {"language":"en_US","color":"green"}
+            - e.g. redis 
+        document databases
+            - set of key value pair 
+            - keys are string, values datatype can be numbers,strings,booleans,etc.
+            - schemalss meaning no need to specify the structure 
+            - formats are json,bson,yaml, or xml 
+            - e.g. 
+                collection {
+                    "name":"Renz",
+                    "age":20
+                }
+            - you could think of collection from the example above as entities or rows in a sql db 
+            - you could think of "name" as the column name and "Renz" as the attribute of the entity in a sql db 
+            - e.g. mongodb 
+        column family databases 
+            - store data in column fmailies 
+                - group related data 
+                - frequently accessed together 
+            - also called wide column databases 
+            - great when dealing with large volumes of data 
+            - just like a table in sql it has columns, and rows, each rows has unique id 
+                - big difference is that example: entity 1 has first_name, last_name, and age while entity 2 only has first_name and last_name 
+                - it only has the attribute it needed unlike in sql where if we have blank values in attribute we specify is as null
+            - think about the queries, no joins (add all the columns we need) 
+            - e.g. apache cassandra 
+        graph databases 
+            - based on math 
+            - has vertices/nodes ( these are entities )
+                - contains value of each entity, e.g. name:Renz, age:20, etc. 
+            - edges/links/arcs ( which connects different nodes )
+                - finds relationship between nodes 
+                - can also have properties or value e.g. entity1(node) follows since 2018(edge) entity2(node)
+                can be 
+                    directed 
+                        - specific direction | e.g. Carol likes post1
+                    undirected 
+                        - the relationship is mutual | e.g. Ben is friends is Aya 
+            - querying 
+                - traversing the graph 
+                
+// LESSON 2.1 - DOCUMENT DATABASE 

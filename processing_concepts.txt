@@ -1,0 +1,151 @@
+// LESSON 1.1 - INTRO TO BATCH PROCESSING
+batch processing
+- processing data in groups
+- runs from start of process to finish
+- no data added in between
+- typically run as in an interval (e.g. every day, every week, every month)
+- processed in a certain size (batch size)
+- an instance of a batch process is often referred to as a job
+
+common batch processing scenarios
+- reading files or parts of files (text,mp3)
+- sending/receiving email
+- printing
+
+// LESSON 1.2 - SCALING BATCH PROCESSING
+purpose of scaling
+improves performance
+processing more quickly
+- less time to process the sme amount of data
+processing more data
+- more data processed in the same maount of time
+
+vertical scaling
+- better computing
+- faster cpu
+- faster io
+- more memory or faster memory (ram)
+- typically the easiest kind of scaling
+- rarely requires changing underlying programs/algorithms
+
+cons
+- inherently lmited
+- can be expensive / low roi
+- industry improvements are not guaranteed
+horizontal scaling
+- splitting a task into multiple parts
+- more computers
+- could also be more cpu
+- best done on tasks that are parallel
+- tasks that can be easily divided among workers
+- can be very cost effect
+- can have near-linear performance improvements for certain types of processes
+
+cons
+- requires a processing framework(like apache spark or fask)
+- ongoing management
+- can be expensive depending on requirements
+- some tasks cant be parallelly computed
+
+// LESSON 1.3 - BATCH ISSUES
+- time until data is ready to process
+- is all data available?
+- time until process begins
+- when does the next interval start?
+- time to process data
+- how long until completion?
+- time until processed data is available for use
+- how long until users can use the data?
+
+// LESSON 2.1 - INTRO TO EVENT BASED COMPUTING
+event based processing
+- doesn''t run at a specific time
+- task run when an event occurs
+- user clicks a button
+- a new file is uploaded to a directory
+- wait for something to occur
+
+example event based task
+- user activty occurs when clicking on links of a webpage
+- client application determines what resources are needed and request these from a server
+- server return the appropriate info and often logs the request
+- these clicks (user events) are often stored or sent to a central location for storage and later analysis
+
+// LESSON 3.1 - QUEUING
+- basically a line (yep, fall in line)
+- useful for processing in order
+- fifo (first in,first out)
+- sometimes referred to as a buffer
+- can be disconnected from a data pipeline
+
+why queues?
+- queues allow tracking of processing order
+- reasonablly easy to scale vertically or horizontally
+- vertical scaling by adding faster hardware
+- horizontal scaling by adding more executors
+
+queue issues
+- bad data or processing errors
+- customer pays with invalid credit card
+- data size variances
+- supermaket fast lane with 100 items
+- sometimes difficult to know the length of the queue
+- first preview showing of a movie
+- scaling limits
+
+// LESSON 2.2 - SINGLE SYSTEM DATA STREAMING
+streaming
+- data doesn't stop until processed
+- is open ended (no specific end event)
+- is defined by the flow of the data, not the content
+
+example
+- logs
+- store event information
+- will store information until resources are exhausted/pruned
+- system event log
+
+// LESSON 2.3 - BATCHING VS STREAMING
+batch
+- processes handle data in groups, or batches
+- the most important details about batch processing the batch size and the batch frequency
+queues
+- queues store/process data in order of insertino
+- queues behaves like batches, with a batch isze of one
+- fifo (first in first ou)
+stream
+- handle data without pausing along the way
+- dont have a defined end
+- maintain order
+
+how to determine the best approach
+- if we can process in groups, batching often is the best due to its simplicity
+- if we need order, but it's okay to pause, use a queue
+- if we need continous data, or we don't know how much data, try streaming
+- if we can't stop until the data is processed, also use streaming
+
+// LESSON 3.1 - INTRO TO REAL TIME STREAMING 
+- continously delviering data thru messaging system  at real time 
+
+// LESSON 3.2 - VERTICALLY SCALING STREAMING SYSTEMS 
+why scale 
+    - process the same data in less time 
+    - process more data in the same time 
+    - deliver data more quickly (reduce latency)
+    - meet guarantees (SLAs) | industry standard | IMPORTANT!!!!
+vertical scaling 
+    - upgrading hardware (cpu,gpu,ram,etc.)
+    - do not scale if not necessary (e.g. there a 20% spare time after meeting the SLA) as it is a huge waste of resources 
+
+// LESSON 3.3 - HORIZONTAL SCALING STREAMING SYSTEMS 
+horizontal scaling 
+    - adding more hardware or scaling out 
+    - streaming data processing typically has minimal delays 
+    - can make transfer of data between workers tricky 
+pipeline copies 
+    - as event occur, they initiall entera pipeline 
+    - all tasks related to that process are self-contained within the pipeline until complete 
+    - scale by adding more pipelines 
+    - can still vertically scale within a pipeline 
+
+// LESSON 3.4 - STREAMING ROADBLOCKS 

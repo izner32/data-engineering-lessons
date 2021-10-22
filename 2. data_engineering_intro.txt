@@ -1,0 +1,709 @@
+// LESSON 1.1 - DATA ENGINEERING 
+data scientist 
+    - perform statistical analysis on the data 
+    - mining data 
+data engineer 
+    - fix data 
+    - gather data from different sources 
+    - setup processes to bring together data 
+    - well versed in cloud technology 
+
+// LESSON 1.2 - TOOLS OF THE DATA ENGINEER 
+- databases 
+    - holds large amount of data 
+
+    - sql 
+        - database with relations 
+    - nosql 
+        - database with no relations 
+- processing 
+    - clean data 
+    - aggregate data 
+    - join data 
+
+    - parallel processing 
+        - data engineers use clusters of machine to process the data 
+- scheduling 
+    - make sure data moves from one place to another at the corect time, with a specifc interval 
+- existing tools 
+    databases
+        - mysql 
+        - postgresql 
+    processing 
+        - spark 
+        - hive 
+    scheduling  
+        - airflow 
+        - oozie 
+        - bash tool: cron 
+
+// LESSON 1.3 - CLOUD PROVIDERS 
+data processing in the cloud 
+    - clusters of machines required 
+data storage in the cloud 
+    - reliable 
+    - like some sort of protection incase a disaster happen 
+big three cloud providers 
+    - aws 
+        - 32% market share 
+    - azure 
+        - 17% market share 
+    - google 
+        - 10% market share 
+three types of services these cloud provider offers 
+    storage 
+        - upload files e.g. storing product images 
+        aws - aws s3 
+        azure - azure blob storage
+        google - google cloud storage  
+    computation
+        - perform calculations e.g. hosting a web server 
+        aws - aws ec2 
+        azure - azure virtual machines 
+        google - google compute engine 
+    databases 
+        - hold structured information typically sql
+        aws - aws rds 
+        azure - azure sql database 
+        google - google cloud sql
+
+// LESSON 2.1 - DATABASES 
+- used to store information 
+- large collection of data organized especially for rapid search and retrieval 
+
+structured data 
+    - always has database schema
+    - tabular data in a relational database 
+unstructured data 
+    - can be schemaless, more like files 
+    - e.g. json data 
+schema 
+    - defines the relationships and properties 
+    - can join two tables since they have relationship 
+
+    star schema 
+        - consists of one or more fact tables referencing any number of dimension tables 
+        - many to one 
+sql 
+    - relational database 
+    - tables 
+nosql
+    - non-relational database 
+
+querying using pandas 
+    imports pandas as pd 
+
+    # Complete the SELECT statement
+    data = pd.read_sql("""
+    SELECT first_name, last_name FROM "Customer" # tables are wrapped in a quotation mark 
+    ORDER BY last_name, first_name
+    """, db_engine) # passing db_engine which connects to the database 
+
+    # Show the first 3 rows of the DataFrame
+    print(data.head(3)) # can use built in methods from pandas 
+
+    # Show the info of the DataFrame
+    print(data.info())
+
+    # Show the id column of data
+    print(data.id) 
+
+// LESSON 2.2 - PARALLEL COMPUTING 
+- basis of modern data processing tools 
+- split tasks into subtaks 
+    - distribute subtasks over several computers
+    - work together to finish task 
+    - like multithreading from java/async from javascript 
+risk of parallel computing 
+    - splitting a task into subtask and mergin the result of the subtasks back into one final results requires some communication between process 
+    - parallel computing doesnt necessarily means improving speed tho it does most of the time, sometimes the tash might be too small to benefit from parallel computing and the risk of communication overhead is bigger 
+    - parallel slowdown 
+        - solution: dask framework 
+
+from task to subtask | application use of parallel computing | in real scnearios you would never use this but it's just good to understand how things work in a low level 
+    # Function to apply a function over multiple cores
+    @print_timing # used to time each operation
+    def parallel_apply(apply_func, groups, nb_cores):
+        with Pool(nb_cores) as p: # multiprocessor.Pool allows you to distribute your workload over several processess 
+            results = p.map(apply_func, groups)
+        return pd.concat(results)
+
+    # Parallel apply using 1 core
+    parallel_apply(take_mean_age, athlete_events.groupby('Year'), 1)
+
+    # Parallel apply using 2 cores
+    parallel_apply(take_mean_age, athlete_events.groupby('Year'), 2)
+
+    # Parallel apply using 4 cores
+    parallel_apply(take_mean_age, athlete_events.groupby('Year'), 4)
+
+using a library dask dataframe to parallelize computation, accomplish same thing as above 
+    import dask.dataframe as dd
+
+    # Set the number of partitions
+    athlete_events_dask = dd.from_pandas(athlete_events, npartitions=4)
+
+    # Calculate the mean Age per Year
+    print(athlete_events_dask.groupby('Year').Age.mean().compute())
+
+// LESSON 2.3 - PARALLEL COMPUTATION FRAMEWORKS
+- better than dask dataframe, altho these tools and dask both accomplishes the same thing, this is just way easier 
+apache hadoop 
+    - used for parallel computing 
+hive 
+    - layer on top of hadoop ecosystem
+    - uses sql like 
+spark 
+- somehow like dask but dask is rarely used in real word
+    - just like apache hadoop 
+    - could be used with pyspark(python),r, or scala 
+        - pyspark uses dataframe abstraction unlike in hive which uses sql abstraction  
+        - why do i feel like sql abstraction is much easier
+        - pyspark runs on multiple machines while pandas only runs on one 
+
+pyspark groupby | sample use of pyspark 
+    # Print the type of athlete_events_spark | show the schema 
+    print(type(athlete_events_spark)) # athlete_events_spark is a pyspark dataframe 
+
+    # Print the schema of athlete_events_spark
+    print(athlete_events_spark.printSchema())
+
+    # Group by the Year, and find the mean Age
+    print(athlete_events_spark.groupBy('Year').mean('Age'))
+
+    # The same, but now show the results
+    print(athlete_events_spark.groupBy('Year').mean('Age').show())
+
+running pyspark files 
+    -> spark-submit \  # backslash is used to create multi line command in cmd 
+        -> --master local[4] \ 
+            -> /home/reply/spark-script.py
+
+// LESSON 2.4 - WORKFLOW SCHEDULIGN FRAMEWORKS
+an example pipeline
+- csv 
+    - apache sparks pulls data 
+    - filters out some corrupt records/cleaning the data 
+        - loads the data into a sql database ready for analysis by data scientists 
+
+how to schedule 
+    - manually 
+    - cron scheduling tool 
+    - dags (best)
+        - directed acyclic graph 
+
+tools for the job 
+    - linux's cron 
+    - spotify's luigi 
+    - apache airflow 
+        - for workflow management 
+        - built around the concept of dags 
+
+apaches airflow example of dag 
+- start cluster
+    - ingest_customer_data 
+    - ingest_product_data 
+        - enrich_customer data 
+
+airflow dags 
+    - in airflow, a pipeline is represented as a Directed Acyclic Graph or DAG. 
+    - nodes of the graph represent tasks that are executed 
+    - conceptual example: assemble frame of a car -> place tires or assemble body -> if assemble body apply paint 
+    - dag cannot have a cycle, it's like a waterfall method where we only execute one at a time and there's no going back 
+
+    example 
+        # Create the DAG object
+        dag = DAG(dag_id="car_factory_simulation",
+            default_args={"owner": "airflow","start_date": airflow.utils.dates.days_ago(2)},
+            schedule_interval="0 * * * *")
+
+        # Task definitions
+        assemble_frame = BashOperator(task_id="assemble_frame", bash_command='echo "Assembling frame"', dag=dag)
+        place_tires = BashOperator(task_id="place_tires", bash_command='echo "Placing tires"', dag=dag)
+        assemble_body = BashOperator(task_id="assemble_body", bash_command='echo "Assembling body"', dag=dag)
+        apply_paint = BashOperator(task_id="apply_paint", bash_command='echo "Applying paint"', dag=dag)
+
+        # Complete the downstream flow
+        assemble_frame.set_downstream(place_tires)
+        assemble_frame.set_downstream(assemble_body)
+        assemble_body.set_downstream(apply_paint)
+
+// LESSON 3.1 - EXTRACT 
+ways to extract data 
+    - file 
+        unstructured 
+            - plain text | e.g. chapter from a book 
+        flat files 
+            - row = record | column = attribute 
+            - e.g. .tsv or .csv 
+    - json: key:value pairs 
+        - semi-structured 
+        - has 2 data types 
+            atomic 
+                - number,string,boolean,null 
+            composite 
+                - array,object 
+    - database 
+        - need a connection string to connect to a database 
+    - api 
+        - response data is dependent on how api creators designed it 
+
+fetching api 
+    import requests
+
+    # Fetch the Hackernews post
+    resp = requests.get("https://hacker-news.firebaseio.com/v0/item/16222426.json")
+
+    # Print the response parsed as JSON
+    print(resp.json())
+
+    # Assign the score of the test to post_score
+    post_score = resp.json()["score"]
+    print(post_score)
+
+read from a database 
+    # Function to extract table to a pandas DataFrame
+    def extract_table_to_pandas(tablename, db_engine):
+        query = "SELECT * FROM {}".format(tablename)
+        return pd.read_sql(query, db_engine)
+
+    # Connect to the database using the connection URI
+    connection_uri = "postgresql://repl:password@localhost:5432/pagila" 
+    db_engine = sqlalchemy.create_engine(connection_uri)
+
+    # Extract the film table into a pandas DataFrame
+    extract_table_to_pandas("film", db_engine)
+
+    # Extract the customer table into a pandas DataFrame
+    extract_table_to_pandas("customer", db_engine)
+
+// LESSON 3.2 - TRANSFORM 
+kinds of transformations 
+    - selection of attribute (e.g. email)
+    - translation of code values (e.g. New York -> NY)
+    - date validation (e.g. date input in "created_at")
+    - splitting columns into multiple columns 
+    - joining from multiple sources 
+
+example: splitting columns into multiple columns with pandas 
+    customer_df # pandas dataframe with customer data 
+
+    # split email columns into 2 columns on the "@" symbol 
+    split_email = customer_df.email.str.split("@", expand=True)
+    # at this point, split_email will have 2 columns, a first 
+    # one with everything before @, and a second one with everything after @
+
+    # create 2 new columns using the resulting dataframe 
+    customer_df = customer_df.assign(
+        username = split_email[0],
+        domain = split_email[1]
+    )
+
+sample use case: splitting rental rate 
+    # Get the rental rate column as a string
+    rental_rate_str = film_df.rental_rate.astype("str")
+
+    # Split up and expand the column
+    rental_rate_expanded = rental_rate_str.str.split(".", expand=True)
+
+    # Assign the columns to film_df
+    film_df = film_df.assign(
+        rental_rate_dollar=rental_rate_expanded[0],
+        rental_rate_cents=rental_rate_expanded[1],
+    )
+
+sample pyspark use 
+    # Use groupBy and mean to aggregate the column
+    ratings_per_film_df = rating_df.groupBy('film_id').mean('rating')
+
+    # Join the tables using the film_id column
+    film_df_with_ratings = film_df.join(
+        ratings_per_film_df,
+        film_df.film_id==ratings_per_film_df.film_id
+    )
+
+    # Show the 5 first results
+    print(film_df_with_ratings.show(5))
+
+// LESSON 3.3 - LOADING 
+analytical databases 
+    - aggregate queries 
+    - online analytical processing (olap)
+    - better for parallelization 
+    - mostly column-oriented 
+        - queries about subset of columns 
+        
+application databases 
+    - lots of transactions 
+    - online transaction processing (oltp)
+    - most are row oriented 
+        - stored per record 
+        - added per transaction 
+        - adding customer is fast 
+
+mpp: massively parallel processing databases
+    - loads data best for column oriented 
+    example: amozon redshift, azure sql data warehouse, google bigquery 
+
+    writing to a file workflow 
+    -> write the data into columnar data files 
+        -> these data files are then uploaded to a storage system (s3 is example)
+            -> and from they, they can be copied into the data warehouse (amazon redshift is an example)
+
+    load from file to columnar storage format using pandas 
+        df.to_parquet("./s3://path/to/bucket/costomer.parquet")
+    load from file to columnar storage format using pyspark 
+        df.write.parquet("./s3://path/to/bucket/costomer.parquet")
+    then connect to redshift using a postgresql connection uri and copy the data from s3 into redshift 
+        COPY customer 
+        FROM "./s3://path/to/bucket/costomer.parquet"
+        FORMAT as parquet 
+        ...
+
+    loading to postgresql workflow 
+        -> connect to database 
+            -> transformation step 
+                -> convert to sql 
+                    -> run the query 
+    load to postgresql 
+        # Finish the connection URI
+        connection_uri = "postgresql://repl:password@localhost:5432/dwh"
+        db_engine_dwh = sqlalchemy.create_engine(connection_uri)
+
+        # Transformation step, join with recommendations data
+        film_pdf_joined = film_pdf.join(recommendations)
+
+        # Finish the .to_sql() call to write to store.film
+        film_pdf_joined.to_sql("film", db_engine_dwh, schema="store", if_exists="replace")
+
+        # Run the query to fetch the data
+        pd.read_sql("SELECT film_id, recommended_film_ids FROM store.film", db_engine_dwh)
+
+olap: online analytical processing 
+    - online database query answering system 
+oltp: online transaction processing 
+    - online database modifying system 
+
+// LESSON 3.4 - PUTTING IT ALL TOGETHER - ETL 
+flow 
+-> extracted data from databse 
+    -> transform data to fit our needs 
+        -> loaded them back into the database, the data warehouse 
+
+// etl process ----------------------------------------
+def extract_table_to_df(tablename, db_engine):
+    return pd.read_sql("SELECT * FROM {}".format(tablename), db_engine)
+def split_columns_transform(df, column, pat, suffixes):
+    # Converts column into str and splits it on pat...
+def load_df_into_dwh(film_df, tablename, schema, db_engine):
+    return pd.to_sql(tablename, db_engine, schema=schema, if_exists="replace")
+
+db_engines = { ... } # Needs to be configured
+
+def etl():
+    # Extract  
+    film_df = extract_table_to_df("film", db_engines["store"])
+    # Transform  
+    film_df = split_columns_transform(film_df, "rental_rate", ".", ["_dollar", "_cents"])
+    # Load  
+    load_df_into_dwh(film_df, "film", "store", db_engines["dwh"])
+// -----------------------------------------------
+- now we need to make sure this code runs at a specific time, how? by using scheduler called apache airflow 
+
+airflow refresher
+    - workflow scheduler 
+    - dags to perfectly manage workflow 
+    - tasks defined in operators (e.g. BashOperator)
+
+// scheduling with dags in airflow ------------------------------------
+from airflow.models import DAG
+
+dag = DAG(dag_id="sample",
+          ...,          
+          schedule_interval="0 0 * * *") # this runs every 0th minute 
+// -----------------------------------
+- after creating the dag, its time to set the etl into motion
+
+// dag definition file ------------------------
+from airflow.models import DAG
+from airflow.operators.python_operator import PythonOperator
+
+dag = DAG(dag_id="etl_pipeline",
+          schedule_interval="0 0 * * *") # this is a cron 
+
+etl_task = PythonOperator(task_id="etl_task",
+                          python_callable=etl,
+                          dag=dag)
+
+etl_task.set_upstream(wait_for_this_task)
+// -------------------------------------------------------
+
+setting up airflow 
+    - adding a dag to airflow 
+    - go to terminal 
+    - move the dag.py file containing the dag you defined to the dags folder 
+
+// LESSON 4 - CASE STUDY: COURSE RATINGS 
+etl process 
+-> datacamp_application database 
+    - we'll be using two tables: course(course_id,title,description,programming_language) and rating(user_id,course_id,rating)
+    -> cleaning (data engineer)
+        -> calculate recommednations (data scientist)
+            -> data warehouse 
+
+step 1: querying the table, we'll only grab the rating and course tables from the database 
+    # Complete the connection URI
+    connection_uri = "postgresql://repl:password@localhost:5432/datacamp_application"
+    db_engine = sqlalchemy.create_engine(connection_uri)
+
+    # Get user with id 4387
+    user1 = pd.read_sql("SELECT * FROM rating WHERE user_id=4387", db_engine)
+
+    # Get user with id 18163
+    user2 = pd.read_sql("SELECT * FROM rating WHERE user_id=18163", db_engine)
+
+    # Get user with id 8770
+    user3 = pd.read_sql("SELECT * FROM rating WHERE user_id=8770", db_engine)
+
+    # Use the helper function to compare the 3 users
+    print_user_comparison(user1, user2, user3)
+
+step 2: extract data 
+    # Complete the transformation function
+    def transform_avg_rating(rating_data):
+        # Group by course_id and extract average rating per course
+        avg_rating = rating_data.groupby('course_id').rating.mean()
+        # Return sorted average ratings per course
+        sort_rating = avg_rating.sort_values(ascending=False).reset_index()
+        return sort_rating
+
+    # Extract the rating data into a DataFrame    
+    rating_data = extract_rating_data(db_engines)
+
+    # Use transform_avg_rating on the extracted data and print results
+    avg_rating_data = transform_avg_rating(rating_data)
+    print(avg_rating_data) 
+
+step 3: clean NA data 
+    course_data = extract_course_data(db_engines)
+
+    # Print out the number of missing values per column
+    print(course_data.isnull().sum())
+
+    # The transformation should fill in the missing values
+    def transform_fill_programming_language(course_data):
+        imputed = course_data.fillna({"programming_language": "R"})
+        return imputed
+
+    transformed = transform_fill_programming_language(course_data)
+
+    # Print out the number of missing values per column of transformed
+    print(transformed.isnull().sum())
+
+step 4: get eligible user and course id pairs then calculate the recommendations 
+    # Complete the transformation function
+    def transform_recommendations(avg_course_ratings, courses_to_recommend):
+        # Merge both DataFrames
+        merged = courses_to_recommend.merge(avg_course_ratings)
+        # Sort values by rating and group by user_id
+        grouped = merged.sort_values("rating", ascending=False).groupby("user_id") 
+        # Produce the top 3 values and sort by user_id
+        recommendations = grouped.head(3).sort_values("user_id").reset_index()
+        final_recommendations = recommendations[["user_id", "course_id","rating"]]
+        # Return final recommendations
+        return final_recommendations
+
+    # Use the function with the predefined DataFrame objects
+    recommendations = transform_recommendations(avg_course_ratings, courses_to_recommend)
+
+step 5: load to postgres
+    connection_uri = "postgresql://repl:password@localhost:5432/dwh"
+    db_engine = sqlalchemy.create_engine(connection_uri)
+
+    def load_to_dwh(recommendations):
+        recommendations.to_sql("recommendations", db_engine, if_exists="replace")
+
+step 6: defining the dag so it runs on a daily basis 
+    # Define the DAG so it runs on a daily basis
+    dag = DAG(dag_id="recommendations",
+            schedule_interval="0 0 * * *")
+
+    # Make sure `etl()` is called in the operator. Pass the correct kwargs.
+    task_recommendations = PythonOperator(
+        task_id="recommendations_task",
+        python_callable=etl,
+        op_kwargs={"db_engines": db_engines},
+    )
+
+step 7: enabling the dag in airflow ui 
+    enable the DAG!!!! by toggling off to on 
+
+step 8: querying the recommendations we built 
+    def recommendations_for_user(user_id, threshold=4.5):
+        # Join with the courses table
+        query = """
+        SELECT title, rating FROM recommendations
+        INNER JOIN courses ON courses.course_id = recommendations.course_id
+        WHERE user_id=%(user_id)s AND rating>%(threshold)s
+        ORDER BY rating DESC
+        """
+        # Add the threshold parameter
+        predictions_df = pd.read_sql(query, db_engine, params = {"user_id": user_id, 
+                                                            "threshold": threshold})
+        return predictions_df.title.values
+
+    # Try the function you created
+    print(recommendations_for_user(12, 4.65))
+
+// LESSON 4.5 - CONCLUSION 
+data engineering toolbox 
+    databases 
+    parallel computing & frameworks (spark for parallel computing, pandas for single computing)
+    workflow scheduling with airflow (when to run the code, scheduling)
+etl 
+    extract: get data from several sources 
+    transform: perform transformations using parallel computing 
+    load: load data into target databases
+case study: datacamp 
+    fetch data from multiple sources 
+    transform to form recommendations 
+    load into target database 
+
+// LESSON X.1 - FLOW 
+ETL FLOW 
+    - extract data from various sources 
+        - file 
+        - json 
+        - database 
+        - api(which serves json,xml,etc.)
+    - transforms this raw data into actionabile insiges 
+    - load data into relevant databases 
+
+DATA ENGINEERING FLOW 
+- store data in sql/nosql 
+- [EXTRACT]read data from the database using panda's read.sql() method 
+- display data from the query using panda's head(only show specified no. of rows) and info(showing useful info from the result)
+- is the task too small? 
+    - yes: do not use parallel computing 
+    - no: use parallel computing 
+        - use hadoop or spark 
+
+// LESSON X.2 - DATA ENGINEERING ROADMAP 
+INTRO TO DATA ENGINEERING 
+    https://campus.datacamp.com/courses/introduction-to-data-engineering
+SQL 
+    https://www.linkedin.com/learning/learning-sql-programming-8382385/learning-sql-programming
+    POSTGRESQL
+        https://www.youtube.com/watch?v=XQ_6G0iCyMQ&list=PLwvrYc43l1MxAEOI_KwGe8l42uJxMoKeS
+PYTHON 
+    https://www.udemy.com/course/python-3-master-course-for-2021/learn/practice/1262768?start=summary#overview
+LINUX 
+    https://www.udemy.com/course/linux-tutorials/?ranMID=39197&ranEAID=GjbDpcHcs4w&ranSiteID=GjbDpcHcs4w-grM2QfFWOqVeKgCDDX12Fw&LSNPUBID=GjbDpcHcs4w&utm_source=aff-campaign&utm_medium=udemyads
+FTP,SFTP, TFTP 
+    https://www.coursera.org/lecture/system-administration-it-infrastructure-services/ftp-sftp-and-tftp-Rc1KQ
+FETCHING API: FLASK
+    https://www.youtube.com/watch?v=QKcVjdLEX_s
+DATA WAREHOUSING
+    https://www.udemy.com/course/data-warehouse-fundamentals-for-beginners/?ranMID=39197&ranEAID=GjbDpcHcs4w&ranSiteID=GjbDpcHcs4w-8xplSp9w_fkfgoR0YXaG2A&LSNPUBID=GjbDpcHcs4w&utm_source=aff-campaign&utm_medium=udemyads
+DATA PIPELINES(ETLs,ELTs,ELs)
+TESTING 
+    TEST DRIVEN DEVELOPMENT (TDD)
+        https://www.youtube.com/watch?v=eAPmXQ0dC7Q
+AIRFLOW 
+    https://www.youtube.com/watch?v=AHMm1wfGuHE&list=PLYizQ5FvN6pvIOcOd6dFZu3lQqc6zBGp2
+DOCKER 
+    https://www.youtube.com/watch?v=pTFZFxd4hOI
+CLOUD 
+    CERTIFICATION 
+        https://www.coursera.org/professional-certificates/gcp-data-engineering?ranMID=40328&ranEAID=GjbDpcHcs4w&ranSiteID=GjbDpcHcs4w-RRA2EvkPrSS.DRJYOcp3YQ&siteID=GjbDpcHcs4w-RRA2EvkPrSS.DRJYOcp3YQ&utm_content=10&utm_medium=partners&utm_source=linkshare&utm_campaign=GjbDpcHcs4w
+NOSQL
+STREAMING AND DISTRIBUTED SYSTEMS 
+    SPARK 
+    KAFKA 
+STUDYING INTERVIEW QUESTIONS 
+    https://betterprogramming.pub/the-data-engineering-interview-study-guide-6f09420dd972
+
+// LESSON X.2-5 DETAILED ROADMAP 
+CS FUNDAMENTALS
+    BASIC TERMINAL USAGE 
+    DATA STRUCTURE AND ALGORITHM
+    APIS 
+    REST 
+    STRUCTURED VS UNSTRUCTURED DATA 
+    LINUX 
+    GIT 
+    HOW DOES COMPUTER WORK 
+    HOW DOES INTERNET WORK 
+LEARN A PROGRAMMING LANGAUGE 
+    PYTHON 
+TESTING 
+    UNIT TESTING 
+        PYTEST 
+    INTEGRATION TESTING 
+        PYTEST 
+    FUNCTIONAL TESTING 
+DATABASE FUNDAMENTALS 
+    SQL 
+    NORMALISATION
+    ACID TRANSACTIONS 
+    CAP THEOREM 
+    OLTP VS OLAP
+    HORIZONTAL VS VERTICAL SCALING 
+    DIMENSIONAL MODELING 
+RELATIONAL DATABASE 
+    POSTGRESQL
+NON-RELATIONAL DATABASES 
+    DOCUMENT 
+        MONGODB 
+    WIDE COLUMN 
+        APACHE CASSANDRA 
+    GRAPH 
+    KEY-VALUE 
+        AMAZON DYNAMODB
+DATA WAREHOUSES 
+    SNOWFLAKE
+OBJECT STORAGE 
+    AWS S3
+CLUSTER COMPUTING FUNDAMENTALS 
+    APACHE HADOOP 
+DATA PROCESSING 
+    BATCH 
+        APACHE PIG 
+    HYBRID 
+        APACHE SPARK 
+    STREAMING 
+        APACHE KAFKA 
+MESSAGING 
+    RABBITMQ
+WORKFLOW SCHEDULING 
+    APACHE AIRFLOW 
+MORNING DATA PIPELINES 
+    PROMETHEUS 
+NETWORKING 
+    PROTOCOLS 
+    FIREWALLS 
+    VPN 
+    VPC 
+INFRASTRCTURE AS CODE 
+    CONTAINERS 
+        DOCKER 
+    CONTAINER ORCHESTRATION 
+        KUBERNETES 
+    INFRASTRUCTURE PROVISIONING 
+        TERRAFORM
+CI/CD 
+    JENKINS 
+IDENTITY AND ACCESS MANAGEMENT 
+    ACTIVE DIRECTORY 
+DATA SECURITY & PRIVACY
+    LEGAL COMPLIANCE 
+    ENCRYPTION 
+    KEY MANAGEMENT 
+
+// LESSON X.3 - CONCLUSION 
+1 - data engineers, tools of data engineers, cloud providers 
+2 - types of databases, understanding parallel computing, parallel computing frameworks, workflow scheduling frameworks 
+3 - ETL 
+
+
+
