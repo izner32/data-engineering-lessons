@@ -1,0 +1,5 @@
+
+// LESSON X.1 - DATA MODELING FLOW 
+-> conceptual data model 
+    -> logical data model 
+        -> physical data model 

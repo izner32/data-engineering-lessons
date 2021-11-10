@@ -1,0 +1,392 @@
+// LESSON 1.1 - WHAT IS DATA MODEL 
+- abstact model that organizes elements of data and standardizes how they relate to one another and to the properties of real world entities 
+- organized data determines later data use 
+- really important to organize data 
+- iterative process, not build once and its all done 
+
+3 types of data model 
+    - conceptual 
+    - logical 
+    - physical 
+
+// LESSON 1.2 - RELATIONAL MODEL 
+- organizes data into one or more tables of coluns and rows, with a unique key identifying each row 
+- relating a table from another so we could join them 
+- represents the database as a collection of relations 
+
+// LESSON 1.3 - RELATIONAL DATABASES 
+- digital dataabse based on the relational model of data ... a software system used to maintain relational databases is a relational database management systems (RDBMS)
+
+common types of rdbms 
+    - mysql 
+    - postgresql
+    - etc.
+
+basics of relational databases 
+    database 
+        - collection of tables 
+    tables/relations 
+        - group of rows sharing the same labeled elements(columns)
+
+advantages of using a relational database 
+    - ease of use bacause of sql 
+    - easily join tables 
+    - ability to do aggregations and analytics 
+
+// LESSON 1.4 - ACID PROPERTIES 
+- relational databases should follow this 
+
+ACID 
+    atomicity 
+    consistency 
+    isolation 
+    durability: incase of the power failure, the system should be able to recover from this  
+
+// LESSON 1.4 - WHEN TO NOT USE RDBMS 
+- large amounts of data 
+- need to be able to store different data type formats 
+- need a flexible schema 
+- need high availability 
+- need horizontal scalability 
+
+// LESSON 2.1 - CREATING DATABASE AND BUILDING TABLES WITH PYTHON 
+# think of doing this inside a jupyter 
+
+## LESSON 1 EXERCISE 1: CREATING A TABLE WITH POSTGRESQL 
+# sqlalchemy generates sql statements then send to database driver which then sends to the database 
+# psycop2 is a databasee driver which sends sql statements to the database thus making psycopg2 faster than sqlalchemy 
+!pip install psycopg2 # psycopg2 is a database driver while sqlalchemy is an orm, psycopg2 is faster than sqlalchemy 
+
+## import the library 
+import psycopg2 
+
+## create a connection to the database 
+# use try-except block for error handling 
+try: 
+    conn = psycopg2.connect("host=123,0.0.1 dbname=postgres user=postgres password=root)
+except psycopg2.Error as e: 
+    print("Error: could not make connection to the postgres database")
+    print(e)
+
+## use the connection to get a cursor that can be used to execute queries 
+# cursor helps you let create queries to the database 
+try: 
+    cur = conn.cursor()
+except psycopg2.Error as e: 
+    print("Error: could not get curser to the database")
+    print(e)
+
+## set automatic commit to be true so that each action is committed without having to call conn.commit() after each command 
+conn.set_session(autocommit=True)
+
+## create a database to do the work in 
+# creating a query to create database 
+try: 
+    cur.execute("CREATE DATABASE myfirstdb") # execute takes a parameter as a query 
+except: psycopg2.Erorr as e: 
+    print(e)
+
+## add the database name in the connect statement. Let's close oru connection to the default database, reconnect to the udacity database, and get a new cursor 
+try: 
+    conn.close()
+except psycopg2.Error as e:
+    print(e)
+    
+try: 
+    conn = psycopg2.connect("host=127.0.0.1 dbname=myfirstdb user=postgres password=root")
+except psycopg2.Error as e: 
+    print("Error: Could not make connection to the Postgres database")
+    print(e)
+    
+try: 
+    cur = conn.cursor()
+except psycopg2.Error as e: 
+    print("Error: Could not get curser to the Database")
+    print(e)
+
+conn.set_session(autocommit=True)
+
+## create Table for students which includes below columns
+try: 
+    cur.execute("CREATE TABLE IF NOT EXISTS students (student_id int, name varchar,\
+    age int, gender varchar, subject varchar, marks int);")
+except psycopg2.Error as e: 
+    print("Error: Issue creating table")
+    print (e)
+
+## insert the following two rows in the table 
+# First Row: 1, "Raj", 23, "Male", "Python", 85
+# Second Row: 2, "Priya", 22, "Female", "Python", 86
+try: 
+    cur.execute("INSERT INTO students (student_id, name, age, gender, subject, marks) \
+                 VALUES (%s, %s, %s, %s, %s, %s)", \
+                 (1, "Raj", 23, "Male", "Python", 85))
+except psycopg2.Error as e: 
+    print("Error: Inserting Rows")
+    print (e)
+    
+try: 
+    cur.execute("INSERT INTO students (student_id, name, age, gender, subject, marks) \
+                  VALUES (%s, %s, %s, %s, %s, %s)",
+                  ( 2, "Priya", 22, "Female", "Python", 86))
+except psycopg2.Error as e: 
+    print("Error: Inserting Rows")
+    print (e)
+
+## validate or check if your data was inserted into the table 
+try: 
+    cur.execute("SELECT * FROM students;")
+except psycopg2.Error as e: 
+    print("Error: select *")
+    print (e)
+
+row = cur.fetchone()
+while row:
+    print(row)
+    row = cur.fetchone()
+
+## and finally close your curson and connection 
+cur.close()
+conn.close()
+
+// LESSON 3.1 - EXTRACT AND TRANSFORMATION 
+# think of doing this inside a jupyter 
+
+## importing necessary libraries 
+import psycopg2 # for connecting to database
+import pandas as pd # for data processing 
+
+## creating a database function, we use function because we might call it again and again 
+def create_database():
+    # connect to default database to be able to create database we're really using 
+    conn = psycopg2.connect("host=127.0.0.1 dbname=postgres user=postgres password=root")
+    conn.set_session(autocommit=True) # so we won't have to commit every query 
+    cur = conn.cursor() we need this to execute a query 
+
+    # create sparkify database with UTF8 encoding 
+    cur.execute("DROP DATABASE IF EXISTS accounts") # removing the database just incase there's already an existing one 
+    cur.execute("CREATE DATABASE accounts) 
+
+    # close connection to default database
+    conn.close()
+
+    # connect to sparkify database - the database we'll really use 
+    conn = psycopg2.connect("host=127.0.0.1 dbname=accoutns user=postgres password=root")
+    cur = conn.cursor() # again, creating cursor so we could query into this database 
+
+    return cur, conn 
+
+## creating and dropping a table, we create a function because we might use them multiple times 
+def drop_tables(cur, conn):
+    for query in drop_table_queries:
+        cur.execute(query)
+        conn.commit() # we have to commit for each execution, unless we specify autocommit but in this case we didnt so we have to do this 
+
+def create_tables(cur,conn):
+    for query in create_table_queries:
+        cur.execute(query)
+        conn.commit()
+
+## Extracting data from three csv files and cleaning it 
+
+## analyzing and cleaning the accountsCountry table we're about to extract
+# data processing - this is where pandas is useful 
+AccountsCountry = pd.read_csv("data/Wealth-AccountsCountry.csv")
+AccountsCountry.head() # view the first 5 rows/entities 
+
+# select only 6 columns from the dataframe, we're only gonna focus on this 6 
+AccountsCountry_clean = AccountsCountry[["Country Code", "Short Name", "Table Name", "Long Name", "Currency Unit"]]
+AccountsCountry_clean.head() # view the first 5 rows/entities
+
+## analyzing and cleaning the accountsData table we're about to extract
+AccountsData = pd.read_csv("data/Wealth-AccountsData.csv")
+AccountsData.head() # view the first 5 rows/entities 
+
+# view the columns available in the table 
+AccountsData.columns 
+
+# removing column we don't want 
+AccountsData = AccountsData.drop(["Unnamed: 9"], axis=1) # axis=1 means we're removing a column, axis=0 for row 
+
+# check if the column was really deleted
+AccountsData.head() 
+
+## analyzing and cleaning the accountsSeries table we're about to extract
+AccountsSeries = pd.read_csv("data/Wealth-AccountsSeries.csv")
+AccountsSeries.head() # view the first 5 rows/entities 
+
+# view the columns available in the table 
+AccountsSeries.columns 
+
+# select only the columns we want 
+AccountsSeries = AccountsSeries[["Series Code", "Topic", "Indicator Name", "Short definition"]]
+AccountsSeries.head() # view the first 5 rows/entities 
+
+// LESSON 3.2 - CREATING A DATA MODEL 
+- create data model at app.diagrams.net | for visualizations 
+    - create relations for the different tables extracted 
+    - look at the relation section to easily create relations 
+
+## coding the data model we just created from app.diagrams.net in python 
+
+# creating a database 
+cur, conn = create_database() 
+
+# creating a table 1
+songplay_table_create = (""" CREATE TABLE IF NOT EXISTS accountscountry(
+    country_code VARCHAR PRIMARY KEY, 
+    short_name VARCHAR, 
+    table_name VARCHAR, 
+    long_name VARCHAR,
+    currency_unit VARCHAR
+)""")
+
+cur.execute(songplay_table_create) # creating a table inside the database we just created 
+conn.commit() 
+
+# creating table 2 
+accounts_data_table_create = (""" CREATE TABKE UF BIT EXUSTS accountsdata(
+    country_name VARCHAR,
+    country_code VARCHAR,
+    indicator_name VARCHAR,
+    indicator_code VARCHAR,
+    year_1995 numeric,
+    year_2000 numeric,
+    year_2005 numeric,
+    year_2010 numeric,
+    year_2014 numeric
+)""")
+
+cur.execute(accounts_data_table_create) # creating a table inside the database accounts
+conn.commit() # we need to do this at every execution :(
+
+# creating table 3 
+accountseries_data_table_create = ("""CREATE TABLE IF NOT EXISTS accountseries(
+    series_code VARCHAR,
+    topic VARCHAR,
+    indicator_name VARCHAR,
+    short_definition VARCHAR
+)""")
+
+cur.execute(accountseries_data_table_create)
+conn.commit() 
+
+// LESSON 3.3 - INSERTING VALUES TO THE TABLES WITH SCHEMA AND DATA MODEL 
+## inserting value to accountscountry 
+accounts_country_table_insert = ("""INSERT INTO accountscountry(
+    country_code, # inserting from this column 
+    short_name,
+    table_name,
+    long_name,
+    currency_unit)
+    VALUES (%s, %s, %s, %s, %s)  # %s is the datatype we'll be inserting in the column
+"""")
+
+# iterating thru all of the rows at AccountsCountry_clean dataframe then inserting them all into table 
+for i, row in AccountsCountry_clean.iterrows(): # row is collection that contains attributes for each column at the row 
+    cur.execute(accounts_country_table_insert, list(row))
+
+## inserting value to accountsdata 
+accounts_data_table_insert = ("""INSERT INTO accountsdata(
+    country_name,
+    country_code,
+    indicator_name,
+    indicator_code,
+    year_1995,
+    year_2000,
+    year_2005,
+    year_2010,
+    year_2014)
+    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+""")
+
+# iterating thru all of the rows at AccountsData dataframe then inserting them all into table 
+for i, row in AccountsData.iterrows(): # row is collection that contains attributes for each column at the row 
+    cur.execute(accounts_data_table_insert, list(row))
+
+## inserting value to accoutnseries 
+accountseries_data_table_insert = ("""INSERT INTO accountseries(
+    series_code,
+    topic,
+    indicator_name,
+    short_definition)
+    VALUES (%s, %s, %s, %s)
+""")
+
+# iterating thru all of the rows at AccountsSeries dataframe then inserting them all into table 
+for i, row in AccountsSeries.iterrows(): # row is collection that contains attributes for each column at the row 
+    cur.execute(accountsseries_data_table_insert, list(row))
+
+// LESSON X.1 - DATA ENGINEERING FLOW - ETL - common when converting oltp to become olap
+- extract data
+- staging area: spark dataframe(big data),pandas dataframe(small data) etc. 
+    - create table schema (format on how the table should look like) - this is different from database schema where in you're talking about collections of multiple table schemas
+    - put data in a dataframe with table schema 
+- clean and transform data (remove null values,etc.) from the dataframe 
+- create data model for visualization(er diagram - create this at app.diagrams.net) and then code them to see how the relations for each table should look like 
+    - determine data warehouse | study more about data warehouse in here https://www.1keydata.com/datawarehousing/data-warehouse-architecture.html
+        - kimball method 
+            - star schema 
+            - snowflake schema 
+        - inmon method 
+- code the data warehouse (identify whether to use cloud or on-premise data warehouse but cloud is much better)
+    cloud 
+        - cost efficient since youll only occupy the space you needed 
+        cloud managed 
+            sql 
+                aws rds 
+                amazon redshift (preferred): this is just postgresql + modified extension
+            nosql 
+            files 
+        self managed 
+            ec2 + ??
+    on premise 
+        - you have to build your own hardware in house to run those databases 
+        - not cost efficient 
+- load cleaned data to a data warehouse (remember data warehouse is just a database with a schema)
+    - remember, schema and data model is optimized for olap queries 
+- from data warehouse create a data mart(one data mart = one database) 
+- do analysis or train ml algos by grabbing data in data mart 
+- schedule the pipeline with airflow 
+    - extract 
+    - transform 
+    - clean 
+    - load to database then into data warehouse
+
+// LESSON X.2 - DATA ENGINEERING FLOW - ELT 
+- extract data
+- load to data lake 
+- inside data lake, transform data 
+- inside data lake, clean data 
+- load cleaned data to a database 
+    - sql
+        - determine schema 
+        - determine data model 
+    - nosql 
+        - determine schema 
+        - determine data model 
+- load database into data warehouse 
+- schedule the pipeline with airflow 
+    - extract 
+    - transform 
+    - clean 
+    - load to database then into data warehouse 
+
+// LESSON X.3 - ETL VS ELT 
+etl 
+    - used for relational and structured data 
+    - used for small amount of data since transforming is slow because as data grows, trasnformation time increases
+elt 
+    - used for scalable cloud structured and unstructured data sources 
+    - used for large amounts of data 
+
+// LESSON X.4 - DATA MODELING FLOW 
+- Identify entity types.
+- Identify attributes.
+- Apply naming conventions.
+- Identify relationships.
+- Apply data model patterns.
+- Assign keys.
+- Normalize to reduce data redundancy.
+- Denormalize to improve performance.
+http://www.agiledata.org/essays/dataModeling101.html

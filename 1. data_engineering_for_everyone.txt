@@ -6,9 +6,8 @@ data workflow
             -> experimentation and prediction 
 
 data engineer
-    - ingest data from different sources 
-    - optimized databases for analysis 
-    - remove corrupted data 
+    - create data pipelines 
+    - develop data models 
     - develop,construct,test and maintain data architecturs
 big data 
     - volume 
@@ -205,17 +204,22 @@ multicloud
 3 - data processing, data scheduling, parallel computing, cloud computing 
 
 // LESSON X.2 - DATA ENGINEERING WORKFLOW 
+choose data flow: if big data choose elt, if small data use etl 
+choose data storage: if data wll be used for analysis use olap and datawarehouse, if data is continous and is used for daily transactions(updated regularly) use data lake and oltp 
+    - note: data warehouse: organized, data lake: unorganized 
 ETL (extract,transformation,load) - no data lakes in here 
     - ingest data from multiple sources (csv,tsv,xlsx,json,DBs)
+    - data processing 
         - could use singer, or spark or pandas 
-    - transform and clean data 
         - batch processing: scheduled processing, collection of data 
             - use spark 
             - useful when you know data is only gonna arrive at like end of day, or end of week, or...
         - stream processing: real time processing, continous data 
             - use kafka toppic 
                 - use apache spark for stream processing 
-    - load transformed and cleaned data into database 
+    - transform and clean data 
+    - load it first at storages such as aws s3 
+    - from s3 load it into a database 
         - sql database: this is much preferred 
             - preferred for structured and related data 
             - pure sql db cannot be horizontally scaled only vertically but theres some workaround, what you can do is 
@@ -228,13 +232,13 @@ ETL (extract,transformation,load) - no data lakes in here
     - schedule workflow using apache airflow 
     - query from the database from the data warehouse that is to be used for analytics or machine learning algos 
 
-ELT (extract,load,transformation)
+ELT (extract,load,transformation): useful for quickly storing data unlike in etl which runs slower since it would transform first 
     - ingest data from multiple sources (csv,tsv,xlsx,json,DBs)
         - could use singer, or spark or pandas 
     - store scraped data into data lake (put raw data into data lakes) 
         - organize data by converting it into data catalog (datas are grouped)
     - grab data from data catalog
-    - transform and clean data (processing) 
+    - data processing 
         - batch processing: scheduled processing, collection of data 
             - use spark 
             - for faster processing use horizontal scaling(use spark), horizontal scaling(parallel computing) means splitting task into multiple workers instead of vertical scaling whcih means upgrading your cpu or memory which is not cost effective
@@ -244,8 +248,11 @@ ELT (extract,load,transformation)
         - stream processing: real time processing, continous data 
             - use kafka toppic 
                 - use apache spark for stream processing 
-    - load transformed and cleaned data into database 
+    - transform and clean data
+    - load it first at storages such as aws s3 
+    - from s3 load it into a database 
     - load that database into data warehouse 
         - determine whether to use OLAP vs OLTP for data warehouse 
     - schedule workflow using apache airflow 
     - query from the database from the data warehouse that is to be used for analytics or machine learning algos 
+

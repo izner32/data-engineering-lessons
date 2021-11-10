@@ -1,0 +1,431 @@
+// LESSON 1.1 - INTRO TO AWS AND BOTO3 
+- boto3 lets us harness the power of AWS to use as an extension to python 
+
+aws services 
+    IAM: for user management and giving access 
+    S3: let us store files in the cloud, cloud storage  
+    SNS: simple notification service, let us send emails and text to alert subscribers based on events and conditions in our data pipeline 
+    COMPREHEND: perform sentiment analysis on blocks of text
+    REKOGNITION:  extracts text from images and look for cats in the picture 
+    RDS 
+    EC2 
+    LAMBDA 
+code 
+    import boto3 
+
+    s3 = boto3.client(
+        's3', // interact with s3 
+        region_name="us-east-1", // where you from dude 
+        aws_access_key_id=AWS_KEY_ID, // you need this to access aws 
+        aws_secret_access_key=AWS_SECRET // also this 
+        )
+    
+    response=s3.list_buckets()
+
+// LESSON 1.2 - DIVING INTO BUCKETS 
+s3 components - buckets 
+    - like desktop folders 
+    - objects are like file in those folders 
+    - own permission policy 
+    - website storage 
+    - objects can be anything like a file 
+
+what can we do with buckets 
+    - create bucket 
+    - list buckets 
+    - delete buckets 
+
+creating a bucket 
+    // creating boto client 
+    import boto3
+
+    s3 = boto3.client(
+        's3', 
+        region_name='us-east-1',
+        aws_access_key_id=AWS_KEY_ID,
+        aws_secret_access_key=AWS_SECRET)
+
+    // creating the bucket, specify the bucket name in this case the name is gid-requests 
+    bucket = s3.create_bucket(Bucket='gid-requests')
+
+listing buckets 
+    // creating boto client just like above 
+
+    // list buckets 
+    bucket_response = s3.list_buckets()
+
+    // get buckets dictionary 
+    buckets = bucket_response["Buckets"]
+    print(buckets)
+
+deleting buckets 
+    // creating boto client just like above 
+
+    // delete bucket 
+    response = s3.delete_bucket('gid-request') // this is the same as what we have created above 
+
+// LESSON 1.3 - UPLOADING AND RETRIEVING FILES 
+bucket
+    - name is a string 
+    - unique name in all of s3 
+    - contains many objects 
+object 
+    - has a key 
+    - name is full path from bucket root 
+    - unique key in the bucket 
+    - can only be in one parent bucket 
+
+uploading file and converting it into object 
+    // creating the client 
+    import boto3
+
+    s3 = boto3.client(
+        's3', 
+        region_name='us-east-1',
+        aws_access_key_id=AWS_KEY_ID,
+        aws_secret_access_key=AWS_SECRET)
+
+    // uploading files 
+    s3.upload_file(  
+        Filename='gid_requests_2019_01_01.csv', // file we'll upload 
+        Bucket='gid-requests', // what bucket to place it 
+        Key='gid_requests_2019_01_01.csv' // name of object in s3 
+    )
+
+    // listing objects in a bucket 
+    response = s3.list_objects(  
+        Bucket='gid-requests',   
+        MaxKeys=2, // show only two objects 
+        Prefix='gid_requests_2019_') // passing it will limit the response to objects that start with the string we provided 
+    print(response)
+
+    // getting object metadata 
+    response = s3.head_object(  
+        Bucket='gid-requests',   
+        Key='gid_requests_2018_12_30.csv')
+    print(response)
+
+    // downloading files 
+    s3.download_file(  
+        Filename='gid_requests_downed.csv', // what file we wanted to download 
+        Bucket='gid-requests',  // from what bucket 
+        Key='gid_requests_2018_12_30.csv') // what key of the object we wanted to download 
+
+    // deleting objects 
+    s3.delete_object(  
+        Bucket='gid-requests', // from what bucket  
+        Key='gid_requests_2018_12_30.csv') // what key of the object we wanted to delete 
+
+// LESSON 2.1 - KEEPING OBJECTS SECURE 
+- need to interact with boto3 client first 
+
+aws permission system
+    - iam 
+        - by attaching policies to users we registered 
+        - great for multi user environments 
+    - bucket policy 
+        - answers who can access this object 
+        - great for multi user environments 
+    - acl 
+        - access control list 
+        - let us set permissions on specific objects within a bucket 
+    - presigned url 
+        - let us provide temporary access to an object 
+
+acl 
+    // upload file 
+    s3.upload_file(  
+        Filename='potholes.csv', Bucket='gid-requests', Key='potholes.csv')
+    
+    // set acl to public read - now anyone in the world can download this file 
+    s3.put_object_acl(  
+        Bucket='gid-requests', 
+        Key='potholes.csv', 
+        ACL='public-read')
+    
+upload files with public-read acl - public read meaning anyone in the world can access it 
+    s3.upload_file(  
+        Bucket='gid-requests',   
+        Filename='potholes.csv',   
+        Key='potholes.csv',   
+        ExtraArgs={'ACL':'public-read'})
+
+accessing public objects 
+    // s3 object url template 
+    https://{bucket}.s3.amazonaws.com/{key} // bucket is like the folder, key is the unique value for each object 
+
+    // real world example 
+    https://gid-requests.s3.amazonaws.com/2019/potholes.csv
+
+generating public object url - downloading the uploaded object, then convert it into string so we can pass it into pandas 
+    // generate object url string 
+    url = "https://{}.s3.amazonaws.com/{}".format(
+        "gid-requests", 
+        "2019/potholes.csv")
+
+    // this is the url: 'https://gid-requests.s3.amazonaws.com/2019/potholes.csv'
+
+    // read the url into pandas 
+    df = pd.read_csv(url)
+
+// LESSON 2.2 - ACCESSING PRIVATE OBJECTS IN S3 - SHARING FILES TO OUR OWN SCRIPT OR OTHERS 
+- if acl is not set to public-read, this is default set into private 
+
+downloading private files 
+    // download file 
+    s3.download_file(  
+        Filename='potholes_local.csv',  
+        Bucket='gid-staging',   
+        Key='2019/potholes_private.csv')
+    
+    // read from disk 
+    pd.read_csv('./potholes_local.csv')
+
+accessing private files 
+    // get the object 
+    obj = s3.get_object(Bucket='gid-requests', Key='2019/potholes.csv')
+    
+    // read StreamingBody into Pandas 
+    pd.read_csv(obj['Body'])
+
+presigned url 
+- expire after a certain timeframe 
+- great for temporary access 
+- granting access to objects temporarily 
+
+presigned urls 
+    // upload a file 
+    s3.upload_file(  
+        Filename='./potholes.csv',   
+        Key='potholes.csv',   
+        Bucket='gid-requests')
+    
+    // generate presigned url 
+    share_url = s3.generate_presigned_url(  
+        ClientMethod='get_object', // if we do get_object we can access this based on the condition specified below
+        ExpiresIn=3600, // giving acces to this file for 3600 seconds 
+        Params={'Bucket': 'gid-requests','Key': 'potholes.csv'} // give acces to this file, remember bucket is what bucket it belogns to and key is for unique identifeir for the object 
+    )
+
+    // open in pandas 
+    pd.read_csv(share_url)
+
+load multiple files into one dataframe 
+    # Create list to hold our DataFrames
+    df_list = []
+
+    # Request the list of csv's from S3 with prefix; Get contents
+    response = s3.list_objects(  
+        Bucket='gid-requests',   
+        Prefix='2019/')
+    
+    # Get response contents
+    request_files = response['Contents']
+
+    # Iterate over each object
+    for file in request_files:    
+        obj = s3.get_object(Bucket='gid-requests', Key=file['Key'])
+        
+        # Read it as DataFrame
+            obj_df = pd.read_csv(obj['Body'])
+            
+        # Append DataFrame to list    
+            df_list.append(obj_df)
+
+    # merge columns from the list 
+    df = pd.concat(df_list)
+
+    # Preview the DataFramedf.head()
+
+// LESSON 2.3 - SHARING FILES THROUGH A WEBSITE 
+serving html pages 
+-useful when we want to share results of an analysis with management 
+
+convert dataframe to html
+    df.to_html('table_agg.html')
+
+convert dataframe to html with links ( i mean with render_links automatically converting into <a></a>)
+    df.to_html('table_agg.html', render_links=True)
+
+convert specified columns to html 
+    df.to_html('table_agg.html',            
+        render_links=True, # make links clickable       
+        columns['service_name', 'request_count', 'info_link'])
+
+convert to html but remove the border 
+    df.to_html('table_agg.html',            
+        render_links=True,           
+        columns['service_name', 'request_count', 'info_link'],           
+        border=0 # remove the border 
+    )
+
+uploading an html file to s3 
+    s3.upload_file(  
+        Filename='./table_agg.html',  // filename we'll be uploading
+        Bucket='datacamp-website', // what bucket to place 
+        Key='table.html',  // key or unique identifier for the html file we'll be uploading 
+        ExtraArgs = {
+            'ContentType': 'text/html', // JSON: application/json, PNG: image/png, PDF: application/pdf, CSV: text/csv 
+            'ACL': 'public-read' // make this object to public read or meaning accessible to everyone 
+        }
+    )
+
+accessing html file - since the object is public read we can access it in the browser 
+    # make use of s3 object url template: https://{bucket}.s3.amazonaws.com/{key}
+    # real life example: https://datacamp-website.s3.amazonaws.com/table.html
+
+uploading other types of content not just html but also things such as image 
+    s3.upload_file(  
+        Filename='./plot_image.png',   
+        Bucket='datacamp-website',  
+        Key='plot_image.png',  
+        ExtraArgs = {
+            'ContentType': 'image/png', // JSON: application/json, PNG: image/png, PDF: application/pdf, CSV: text/csv 
+            'ACL': 'public-read'
+        }
+    )
+
+generating an index page - if we want to share multiple files
+    # List the gid-reports bucket objects starting with 2019/
+    r = s3.list_objects(Bucket='gid-reports', Prefix='2019/')
+
+    # Convert the response contents to DataFrame
+    objects_df = pd.DataFrame(r['Contents'])
+
+    # Create a column "Link" that contains website url + key
+    base_url = "http://datacamp-website.s3.amazonaws.com/"
+    objects_df['Link'] = base_url + objects_df['Key']
+
+    # Write DataFrame to html
+    objects_df.to_html(
+        'report_listing.html',
+        columns=['Link', 
+        'LastModified', 'Size'],                   
+        render_links=True
+    )
+
+uploading an index page - index page is multiple files 
+    # upload an html file to s3 
+    s3.upload_file(  
+        Filename='./report_listing.html',   
+        Bucket='datacamp-website',  
+        Key='index.html',  
+        ExtraArgs = {
+            'ContentType': 'text/html', 
+            'ACL': 'public-read'
+        }
+    )
+
+// UNFINISHED - LESSON 2.4 - CASE STUDY: GENERATING A REPORT REPOSITORY 
+goal: create a website where you could display different reports from the data from aws 
+
+how to achieve the goal 
+    prepare data 
+        - download files for the month from the raw data bucket 
+        - concatenate them into one csv 
+        - create an aggregated dataframe 
+    create the report 
+        - write the dataframe to csv and html
+        - generate a bokep plot, save as html 
+    upload reports to shareable website 
+        - create gid-reports buckets 
+        - upload all the three files for the month to s3 
+        - generate an index/html file that lists all the files
+        - get the website url 
+    raw  
+
+// LESSON 3.1 - SNS TOPICS 
+SNS
+    - push notifications 
+    - text messages 
+    - email 
+Understanding sns 
+    -> publisher (like a cnn)
+        -> sns topic (like a channel 2, where user could watch, note: multiple topics is possible | could also think of like the content)
+            -> sns subscribers (like the watcher)
+creating an sns topic 
+    # initialize sns 
+    sns = boto3.client(
+        'sns',                    
+        region_name='us-east-1',                    
+        aws_access_key_id=AWS_KEY_ID,                                      
+        aws_secret_access_key=AWS_SECRET)
+
+    # creating topic 
+    response = sns.create_topic(Name='city_alerts')
+    topic_arn = response['TopicArn'] # grabbing the topicarn from the created topic, topicarn is like a unique identifier for this topic
+listing topics 
+    response = sns.list_topics()
+deleting topics 
+    sns.delete_topic(TopicArn='arn:aws:sns:us-east-1:320333787981:city_alerts') # deleting a specific topic 
+
+// LESSON 3.2 - SNS SUBSCRIPTIONS 
+every subscription has a 
+    - id: unique id of the subscriber
+    - endpoint: how they'll receive it (e.g. email,phone number)
+    - status: e.g. pending confirmation, confirmed
+    - protocol: mode of receiving message (e.g. email,sms,etc.)
+creating a subscription (can be email or sms)
+    # intialize sns 
+    sns = boto3.client(
+        'sns',                    
+        region_name='us-east-1',                    
+        aws_access_key_id=AWS_KEY_ID,                                      
+        aws_secret_access_key=AWS_SECRET)
+
+    # creating a subscriber - for email status is pending first but for sms its automaticalyl confirmed 
+    response = sns.subscribe(  
+        TopicArn = 'arn:aws:sns:us-east-1:320333787981:city_alerts',  # unique identifeir for the topic 
+        Protocol = 'SMS',  # how subscriber would receive the topic, can be changed into email 
+        Endpoint = '+13125551123') # where to send subscriber the topic 
+listing subscriptions 
+    # display data where we coudl see value of subscriptionArn 
+    sns.list_subscriptions_by_topic(  
+        TopicArn='arn:aws:sns:us-east-1:320333787981:city_alerts')
+
+    # grabbing the list 
+    sns.list_subscriptions()['Subscriptions']
+deleting subscriptions 
+    sns.unsubscribe(  
+        SubscriptionArn='arn:aws:sns:us-east-1:320333787981:city_alerts:9f2dad1d-8844-4fe8)
+deleting multiple subscriptions 
+    # get list of subscriptions 
+    response = sns.list_subscriptions_by_topic(  
+        TopicArn='arn:aws:sns:us-east-1:320333787981:city_alerts')
+    subs = response['Subscriptions']
+
+    # unsubscribe sms subscriptions 
+    for sub in subs:
+        if sub['Protocol'] == 'sms':    
+            sns.unsubscribe(sub['SubscriptionArn'])
+
+// LESSON 3.3 - SENDING MESSAGES 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    
+

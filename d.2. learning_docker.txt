@@ -1,0 +1,132 @@
+// INTRO .3 - WHAT IS DOCKER 
+docker 
+    - to avoid this works on my computer 
+    - service that distributes container 
+    - carves up a computer into sealed container that run your code 
+    - gets the code to and from your compuyers 
+    - builds these container for you 
+    - social paltform for you to find and share containers 
+container 
+    - self contained sealed unit of software 
+    - contains everything required to run the code 
+    - includes: code, configs, processes, networking, dependencies, just enough of the operating system to run your code 
+
+// LESSON 1.1 - SETTING UP DOCKER 
+- docker needs a linux server to manage 
+
+// UNFINISHED - LESSON 1.4 - install docker on windows 
+
+// LESSON 2.1 - DOCKER FLOW: images to container 
+image 
+    - image can have multiple container 
+    - every file that makes up just enough of the operating system to do what you need to do 
+
+    # gettign the docker images - cmd 
+    docker images 
+# docker run | command 
+    docker run -ti ubuntu:latest bash # ti stands for terminal interactive 
+        - it causes to have a full terminal wihtin the image so that you can run the shell
+        - what the command does is it runs the bash in ubuntu os 
+        - docker run converts an image to container 
+# docker ps | command 
+    - look at running images 
+    - docker ps -a | see all container 
+    - docker ps -l | see last container to exit 
+    - docker ps --format=$FORMAT | this is to print running images vertically 
+flow 
+    -> image  -> docker run -> runnign container 
+
+// LESSON 2.2 - DOCKER FLOW: container to images 
+# see last container to exit | seeing the stopped container 
+    docker ps -l 
+# docker commit - takes container back to new images, it doesn't overwrite images, it creates new images 
+    docker commit c5885543gf # id after the word commit is the id of the container we got from docker ps -l 
+    # command above has created a new image 
+# giving a tag or name for the newly created image 
+    docker tag 18adswfasdfas82jsdsdkfjghdsf my-new-image-tag # the id after the word tag is the id of the newly created image, my-new-image-tag is the new name we have assigned into the image  
+# docker commit + giving a new tag in a single command line 
+    docker commit containerName imageName 
+flow 
+    -> image -> docker run -> running container -> stopped container -> docker commit -> new image        
+
+// LESSON 2.3 - DOCKER RUN 
+# --rm - means delete this container when you exit 
+# -ti - terminal interactive to make things look good at terminal  
+# ubuntu - running it in ubuntu image  
+# sleep 5 - make the container sleep for 5 seeconds 
+docker run --rm -ti ubuntu sleep 5 
+
+# bash -c "sleep 3; echo all done" - run the container then run this bash command 
+docker run -ti ubuntu bash -c "sleep 3; echo all done"
+
+# -d - detach and also prints out an identifeir for the container, tho you can also grab the id by doing docker ps 
+# detach means like exiting the container but it still runs in the background of your terminal, it just does not receive input or display output 
+docker run -d -ti ubuntu bash 
+
+# attach - only applicable if you are detached from container | attach means you're currently at the container 
+docker attach nameOfContainer
+
+# running more things in a container | this allows you to interact with arleady runnign containers on the docker host 
+docker exec -ti containerName bash # run the bash shell 
+touch foo # creating a file, remember we're currently in a bash shell 
+
+// LESSON 2.4 - MANAGE CONTAINERS 
+# --name example - giving a name "example" to this container 
+# -d - detach or just run it in the background 
+# ubuntu - running it in the ubuntu image 
+# bash -c "lose /etc/password" - process/command we would give to the container 
+docker run --name example -d ubuntu bash -c "lose /etc/password"
+
+# logs example - look at running container named example 
+docker logs example 
+
+# you have to be attached to the container when doing this 
+# kill container_name - stop the container running 
+docker kill container_name 
+
+# rm container_name - remove the container 
+docker rm container_name
+
+# resource constraints - memory limit or setting a limit on how big of a memory can a container contain 
+# can also do cpu limit 
+
+# lesson from the author 
+# don't let your containers fetch dependencies when they start - because someday somebody's gonna remove some library out from the node repos and all of a sudden everything is broken, solution is to make your containers include their dependencies inside the container themselve 
+# don't leave important things in unnamed stopped container 
+
+// UNFINSIHED - LESSON 2.5 - EXPOSING PORTS 
+# container networking 
+# programs in containers are isolated from the internet by default 
+# expose ports to let connections in 
+
+# --rm -ti - --rm means delete container when you exit and -ti is for interactive terminal or good looking terminal 
+# -p 45678:45677 - -p is short for publish, we're gonna publish from port 45678 to port 45678 
+# -p 45679:45679 - publishing a second port | -p is for exposing a port, by doing this the docker container would listen into this port 
+# --name echo-server - naming a container "echo-server" 
+# ubuntu:14.04 - os it's gonna run 
+# bash - run the bash shell 
+docker run --rm -ti -p 45678:45678 -p 45679:45679 --name echo-server ubuntu:14.04 bash 
+
+# this is used for creating a connection to a specified port 
+# nc -lp 45678 - nc for netcat, -lp for listen on port 
+# | nc -lp 45679 - the data from 45678 port would get passed on to this port 45679
+nc -lp 45678 | nc -lp 45679
+
+# this means run the port 45678 
+nc localhost 45678
+
+# port echo-server - looking at the ports this docker container has 
+docker port echo-server
+
+# purpose of this is to dynamically choose the port or in other words let the computer choose the port for you
+# this is just the same as command above except it doesnt have port number after 
+# to create a connection to the port for this you have to do docker port echo-server first 
+# look at the -> (number after these arrow) then do a nc -lp (number after arrow) to create a connection 
+docker run --rm -ti -p 45678 -p 45679 --name echo-server ubuntu:14.04 bash 
+
+# exposing udp ports 
+
+
+
+
+

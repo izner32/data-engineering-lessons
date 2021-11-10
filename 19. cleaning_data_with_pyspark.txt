@@ -1,0 +1,84 @@
+// LESSON 1.1 - INTRO TO DATA CLEANIGN WITH APACHE SPARK 
+data cleaning 
+    - preparing raw data for use in data processing pipelines 
+spark schemas 
+    - define the format of a dataframe (you could think of dataframe as table)
+
+    # example spark schema and using it in a dataframe 
+    from pyspark.sql.types import *
+
+    peopleSchema = StructType([
+        # Define the name field  
+        StructField('name', StringType(), True), # first argument is the column, 2nd is datatype of column and 3rd is whether this column can have null values
+        # Add the age field  
+        StructField('age', IntegerType(), True),
+        # Add the city field  
+        StructField('city', StringType(), True)  
+    ])
+
+    # using the schema in the dataframe 
+    people_df = spark.read.format('csv').load(name='rawdata.csv', schema=peopleSchema)
+
+// LESSON 1.2 - IMMUTABILITY AND LAZY PROCESSING 
+immutable variables 
+    - component of  functional programming 
+    - cannot reassign 
+immutable dataframe 
+    - you cannot create any changes with dataframes, to make changes you have to copy and add from the one you're creating 
+    
+    # immutable 
+    voter_df = spark.read.csv('voterdata.csv')
+
+    # making changes - copies the original dataframe, adds a transformation and reassign the dataframe to this new name 
+    voter_df = voter_df.withColumn('fullyear',voter_df.year + 2000)
+    voter_df = voter_df.drop(voter_df.year)
+lazy processing 
+    - time of transformation of data is about the same regardless of the actual quantity of data, this is possible due to lazy processing
+    - execution will not start until an action is triggered, this only occurs when we do transformations to spark's dataframe just like in the example above 
+    - this idea allows spark to perform the most efficient set of operations to get the desired result 
+
+    # Load the CSV file
+    aa_dfw_df = spark.read.format('csv').options(Header=True).load('AA_DFW_2018.csv.gz')
+
+    # adding column
+    aa_dfw_df = aa_dfw_df.withColumn('airport', F.lower(aa_dfw_df['Destination Airport']))
+    
+    # removing column 
+    aa_dfw_df = aa_dfw_df.drop(aa_dfw_df['Destination Airport'])
+
+    # Show the DataFrame
+    aa_dfw_df.show()
+
+// LESSON 1.3 - UNDERSTANDING PARQUET 
+difficulties with csv files 
+    - no defined schema 
+    - nested data requires special handling 
+    - encoding format limited 
+spark and csv files 
+    - csv files are slow to import and parse 
+    - csv files cannot be shared between workers during the import process
+    - csv files cannot be filtered ("no predicate pushdown") - predicate pushdown can improve query performance by reducing the amount of data read (i/o) from storage files 
+    - any intermediate use requires redefining schema 
+parquet format 
+    - columnar data format 
+    - supported in spark and other data processing frameworks 
+    - supports predicate pushdown 
+    - automaticalyl stores schema information 
+working with parquet 
+    # reading parquet files 
+    df = spark.read.format('parquet').load('filename.parquet') # longer sytax of reading parquet files 
+    df = spark.read.parquet('filename.parquet') # shorter syntax 
+
+    # writing parquet files 
+    df.write.format('parquet').save('filename.parquet') # logner syntax 
+    df.write.parquet('filename.parquet') # shorter syntax 
+parquet and sql: parquet as backing stores for sparksql operations 
+    flight_df = spark.read.parquet('flights.parquet')
+    flight_df.createOrReplaceTempView('flights')
+    short_flights_df = spark.sql('SELECT * FROM flights WHERE flightduration < 100')
+
+
+
+
+
+

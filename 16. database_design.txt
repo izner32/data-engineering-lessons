@@ -1,0 +1,128 @@
+// LESSON 1.1 - OLTP AND OLAP 
+how data is mangaed and organized 
+    schemas: how should my data be logically organized 
+    normalization: should my data have minimal dependency and redundancy 
+    view: what joins will be done most often 
+    access control: should all users of the data have the same level of access 
+    dbms: how do i pick between all the sql and nosql options 
+approaches to processing data 
+    oltp: online transaction processing 
+        - stored in operational database for inform business practices 
+        purpose: support daily transactions 
+        design: application oriented 
+        data: up to date, operational 
+        size: snapshot, gigabytes 
+        queries: simple transactions & frequent updates 
+        users: thousands 
+    olap: online analyitical processing 
+        - stored in data warehouses for data analysis 
+        purpose: report and analyze data 
+        design: subject oriented 
+        data: consolidated, historical 
+        size: archive, terabytes 
+        queries: complex, aggregate queries & limited updates 
+        users: hundreds  
+
+// LESSON 1.2 - STORING DATA 
+structured data 
+    - follows a schema 
+    - defined data types & relationships 
+    - easier to analyze but not flexible as it follows a schema 
+    - e.g. sql, etc.
+unstructured data 
+    - schemaless 
+    - data in its rawest form 
+    - e.g. photos, mp3, etc.
+semi structured data 
+    - does not follow larger schema 
+    - self describing structure 
+    - e.g. nosql,xml,json, etc.
+storing data beyond traditional databases 
+    traditional databases 
+        - for storing real time relational structured data 
+        - oltp 
+    data warehouses 
+        - for analyzing archived structured data 
+        - contains data from multiple sources 
+        - usually read only or used for analysis 
+        - olap 
+
+        data marts 
+            - subset of data warehouses 
+    data lakes 
+        - for storing data of all structures = flexibility and scalability 
+        - for analyzing big data 
+        - often petabytes in size 
+        - needs to ccatalog data otherwise becomes a data swamp 
+        - can run big data analytics usign services such as spark and hadoop 
+            - useful for deep learning and data discvoery because activies requires so much data and doesn't require really that 'clean' data 
+data flows 
+    etl 
+        - useful for smaller scale analytics 
+        
+        flow
+            -> extract from data sources (iot logs, files, apis, oltp)
+                -> transform (staging)
+                    -> load to data warehouses 
+                        -> data warehouse is now then used for machine learning, or data marts or bi tools or analytics or export, etc.
+    elt 
+        -  ETL and ELT are functionally identical if you want to talk about getting raw data into well-modeled data. Where ELT shines is that you don't have to do all of the modeling work before your more technical end users can get to it
+        - more common with big data project 
+
+        flow
+            -> extract from data sources (iot logs, files, apis, oltp)
+                -> load to data lake -> transform inside data lake 
+                        -> data lake is now then used for machine learning, or data marts or bi tools or analytics or export, etc.
+
+// LESSON 1.3 - DATABASE DESIGN 
+database design
+    - determine how data is logically stored 
+    - how is data going to be read and updated 
+database models 
+    - high level specifications for databse structure 
+    - e.g. nosql models, object orient model, network model 
+schemas
+    - blueprint of the database 
+    - deifnes tables, fields, relationships, indexes and views 
+    - when inserting data in relational databses, schemas must be respected 
+
+phases in data modeling 
+    conceptual data model 
+        - describes entities, relationships, and attributes 
+        - tools: data structure diagrams, e.g. entity relational diagrams and uml diagrams 
+    logical data model 
+        - defines tables, columns, relationships 
+        - tools: database models and schemas, e.g. relational model and star schema 
+    physical data model
+        - describes physical storage 
+        - tools: partitions, cpus, indexes, backup systems and tablespaces  
+    
+beyond the relational model 
+    dimensional modeling 
+        - adaptation of the relational model for data warehouse desig need
+        - optimized for olap queries 
+        - built using the star schema 
+
+        fact tables: think of this as a collection of tables 
+            - holds records of a metric 
+            - changes regularly 
+            - connects to dimensions via foreign key 
+        dimension tables: individual table that contains different columns 
+            - holds descriptions of attributes 
+            - does not change as often 
+
+// LESSON 2.1 - STAR AND SNOWFLAKE SCHEMA 
+star schema 
+    - not normalized 
+    - dimension tables holds one to many relationship with the facts table 
+    - only one fact table connected with multiple single dimension table 
+snowflake schema 
+    - gets more specific each time | e.g. fact table connects to store then this connects to city then this connects to state then this connects to country | these tables get connected with foreign keys(the primary key from which the table you're trying to join in the currently selected table), primary key is the unique identifier for each row in a table 
+        - parent table is always many to one relationship with the child table, parent table is the one nearer to fact table
+    - normalized star schema 
+    - extension of star schema 
+    - one fact table connected with multiple dimension parent table(table that has a child table)
+
+    e.g. country connects to multiple state, state connects to multiple city | a parent table has a child table, a very great example of snowflake schema 
+normalization 
+    - divides tables into smaller tables and connects them via relationships 

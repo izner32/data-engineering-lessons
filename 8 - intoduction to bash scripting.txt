@@ -1,0 +1,236 @@
+// CONSENSUS IS IF IT'S LONGER THAN 50 LINES THEN USE PYTHON IF NOT THEN USE BASH 
+// LESSON 1.1 - INTRO AND REFRESHER 
+shell commands refresher 
+    grep - filters input based on regex pattern matching 
+    cat - concatenates file contents line by line 
+    tail/head - give only the last -n lines 
+    wc -  does a word or line country (with flags -w -l)
+    sed - does pattern matched string replacement 
+
+//LESSON 1.2 - BASIC BASH SCRIPT
+bash script example - save this into group.sh then execute the script by using bash group.sh 
+    #!/usr/bash 
+    echo "Hello world"
+bash and shell commands 
+    - each line of your bash script can be a shell command 
+
+// LESSON 1.3 - STANDARD STREAMS AND ARGUMENTS 
+three streams 
+    stdin: standard input 
+    stdout: standard output 
+    stderr: standard error 
+argument 
+    - each argument can be accessed via the $ notation. the first as $1, the second as $2 etc. 
+
+    example script - args.sh 
+        #!/usr/bashecho 
+        $1echo # first argument 
+        $2echo # 2nd argument 
+        $@echo # all argument 
+        "There are " $# "arguments" # number of arguments 
+
+    calling the script args.sh
+        bash args.sh one two three four five  
+
+        doing this would produce 
+            one 
+            two
+            one two three four five 
+            There are 5 arguments 
+
+// LESSON 2.1 - BASIC VARIABLES IN BASH 
+assigning a variable 
+    - must have no space 
+    - can be accessed with $ dollar notation 
+single vs double quote in calling variables 
+    a='apple ' # assigning a string 
+
+    # callign the variable 
+    echo $a 
+    echo "$a" - this would produce apple | double quotes grabs the value of variable when there is $
+    echo '$a' - this would produce $a | single quotes take it literally 
+
+    # assigning variable in weird way 
+    now_var='NOW' # assigning variable must have no space 
+    new_var="$now_var" # remember this is double quote meaning it would grab the value rather than literally assigning the word $now_var 
+    echo $new_Var # this would produce NOW 
+date program 
+    date # this would produce the current time and date 
+shell within a shell 
+    right_now="The date is $(date)" # using the value of date by using $(), usign shell within a shell or in other words using shell commadns inside a variable initialization
+    echo $right_now # this would produce: The date is Mon 2 Dec 2019 14:13:35 AEDT.
+
+// LESSON 2.2 - NUMERIC VARIABLES IN BASH 
+introducing expr 
+    - to do arithmetic in shell 
+    expr 1 + 4 # this would produce 5 
+
+    double bracket notation - different sytnax for using expr 
+    echo $((5 + 7))
+introducing bc(basic calculator)
+    - doing arithmetic calculation for multiple lines  
+    bc  # type this 
+    1 + 4 # would produce 5 
+    2 + 4 # would produce 6 
+    quit # quit bc, to do arithmetic calculations you now need to use expr or bc again 
+
+    bc scale argument 
+        eho "10/3" | bc # this owuld produce just 3 with no decimal, to add decimal use scale argument 
+        echo "scale=3; 10/3" | bc # remmeber we're piping bc in here, semicolon is used to separate statemetns, this would produce 3.333
+numbers in bash script 
+    dog_age=6 # assign a number 6 in this variable 
+
+// LESSON 2.3 - ARRAYS IN BASH 
+array 
+    - normal numerical indexed structure
+        declare withotu adding elemetns 
+            declare -a my_first_array 
+        create and add elements at the same time 
+            my_first_array=(1 2 3) # just like in python, but instead of comma we use space, weird  
+    - called a list in python 
+accessing array properties 
+    my_array=(1 2 3 4)
+    echo ${my_array[@]} # accessing array should be wrapped with ${}, [@] means grab all of the value of the array, use my_array[0] to access first element 
+    my_array[0]=999 # changing element array is just like the same with python 
+slicing thru array 
+    my_array=(1 2 3 4 5)
+    echo ${my_array[@]:3:2} # means select everything starting from 3rd index or 4th elemetn then only pick 2 elements 
+appending to arrays 
+    array+=(elements) # syntax for appending to array 
+    my_array=(1 2 3)
+    my_array+=(10) # my_array is now (1 2 3 10)
+associate array (key value pair, kinda like dictionary in python or objects in javascript)
+    # Create empty associative array
+    declare -A model_metrics # weird way to create array 
+
+    # Add the key-value pairs
+    model_metrics[model_accuracy]=98
+    model_metrics[model_name]="knn"
+    model_metrics[model_f1]=0.82
+
+    # another way to create associate array 
+    # Declare associative array with key-value pairs on one line
+    declare -A model_metrics=([model_accuracy]=98 [model_name]="knn" [model_f1]=0.82)
+
+    # Print out the entire array
+    echo ${model_metrics[@]}
+
+// LESSON 3.1 - IF STATEMENTS 
+if statement syntax 
+    x="Queen"
+    if [ $x == "King" ]; then # you can also use ((condition)) instead of [], you can also use commadns for conditional, look at youtube for more of this 
+        echo "$x is a King!"
+    else 
+        echo "$x is not a King!"
+    fi # closing if statement, weird huh 
+
+// LESSON 3.2 - FOR LOOP AND WHILE STATEMENTS 
+regular for loops 
+    for x in 1 2 3 # pretty much just like in python, you loop thru array 
+    do 
+        echo $x 
+    done 
+for loop number ranges 
+    for x in {1..5..2} # start with 1, end with 5, increment with 2 
+    do 
+        echo $x 
+    done 
+for loop three expression syntax # just like in c++
+    for ((x=2;x<=4;x+=2))
+    do 
+        echo $x 
+    done 
+glob expansion 
+    for book in books/* # iterating thru files 
+    do 
+        echo $book 
+    done 
+shell within a shell # command line inside a shell 
+    for book in $(ls books/ | grep -i 'air')
+    do 
+        echo $book 
+    done 
+
+while statement 
+    x=1
+    while[ $x <= 3 ];
+    do
+        echo $x 
+        ((x+=1)) # uses double parentheses for manipulation of variable or declaration of variable 
+    done 
+
+// LESSON 3.3 - CASE STATEMENTS 
+- substitute to if else, useful for equality checking 
+
+# Create a CASE statement matching the first ARGV element
+case $1 in
+    # Match on all weekdays
+    Monday|Tuesday|Wednesday|Thursday|Friday)
+    echo "It is a Weekday!";;
+    # Match on all weekend days
+    Saturday|Sunday)
+    echo "It is a Weekend!";;
+    # Create a default
+    *) 
+    echo "Not a day!";;
+esac 
+
+// LESSON 4.1 - BASIC FUNCTIONS IN BASH 
+- just like in python 
+function structure 
+    function_name () {
+        # function_code 
+        echo #return is not similar to other programming languages 
+    }
+abnother function structure 
+    function function_name { # can add parenthesis or not it doesnt matter since we do not pass arguments into parenthesis just like in normal programming language, super weird 
+        # function code 
+        return # something 
+    }
+    # calling the function 
+    function_name 
+
+// LESSON 4.2 - ARGUMETNS, RETURN VALUES, AND SCOPE 
+arguments 
+    - value we passed into the function 
+return values 
+    - only meant to determine if the function was a success or a failure (0 for fail, 1 for success)
+local scope 
+    - locally available, those within the curcly brackets 
+global scope 
+    - available everywhere, all variables in bash are globally scoped 
+argument in a function 
+    function function_name2 {
+        echo "$1 $2 $@" # lmao these variables dont need no declarations in parenthesis beside function name 
+    }
+    # calling the function 
+    function_name2 Hello there my dudes # passing argumetns into a function 
+return values in a function 
+    - bash has a return statement but the only use it has is to determine whether the functions execution is success(0) or not (values from 1-255)
+
+    # returning values with global scope - not suggested 
+    function myfunc()
+    {
+        myresult='some value'
+    }
+
+    myfunc
+    echo $myresult
+
+    # returning values while using local scope with command substitution
+    function myfunc()
+    {
+        local  myresult='some value'
+        echo "$myresult"
+    }
+
+    result=$(myfunc)   # or result=`myfunc`
+    echo $result # calling the echo inside the myfunc 
+restricting scope in bash functions 
+    function print_filename { 
+        local first_filename=$1 # by putting the local keyword, these variable is now only avaialble within the scope 
+    }
+
+// UNFINISHED - LESSON 4.3 - SCHEDULING YOUR SCRIPTS WITH CRON - JUST LIKE AIRFLOW 
+
+

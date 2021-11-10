@@ -1,0 +1,21 @@
+// LESSON 1.1 - TRADITIONAL DATA WAREHOUSE 
+- subject oriented, integreate, time variant and non volatile collection of data in support of organizations decision making process 
+
+architecture of traditional data warehouse 
+1. data sources
+    - operational databases 
+    - external sources 
+2. bottom tier 
+    - data warehouse then to data marts 
+3. middle tier 
+    - olap server: transforms data into a format such as we can perform complex calculations 
+4. top tier 
+    - query reports, analytics, data mining 
+
+disadvatanges of traditional data warehouse 
+- difficult to setup,deploy and manage 
+- hard to scale 
+- solution: cloud data warehouse 
+
+// LESSON 1.2 - AMAZON REDSHIFT 
+- massively parallel (MPP), column oriented database deployed on the aws platform that makes it simple and cost effective to analyse all your data across your data warehouse and data lake 

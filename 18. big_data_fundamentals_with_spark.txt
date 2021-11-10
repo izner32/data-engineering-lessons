@@ -1,0 +1,286 @@
+// LESSON 1.1 - BIG DATA 
+- term used to refer to the study and applications of data sets that are to ocomplex for traditional data processing software 
+
+3v's of big data 
+    volume: size of data 
+    variety: different sources and formats 
+    velocity: speed of the data 
+big data concepts and terminology 
+    clustered computing: collection of resources of multiple machines  
+    parallel computing: simultaneous computation 
+    distributed computing: collection of nodes (networked computers) that run in parallel
+    batch processing: breaking the job into small pieces and runnign them on individual machines
+    real-time processing: immediate processing of data 
+big data processing system
+    hadoop/mapreduce: scalable and fault tolerant framework written in java 
+        - batch processing 
+    apache spark: general purpose and lightning fast cluster computing system 
+        - both batch and real time data processing 
+features of apache spark framework 
+    - distributed cluster computing framework 
+    - efficient in memory computations for large data sets 
+    - lgihtning fast data processing framework 
+    - powerful alternative for hadoop/mapreduce 
+apache spark components 
+    - spark sql: used for processing structured and semi-structured data in python,scala, etc.
+    - mlib machine learning: library for common machine learning algorithms 
+    - graphx: collection of algorithms and tools for manipulating graphs and performing parallel graph computations 
+    - spark streaming: scalable, high-throughput processing library for real time data 
+spark modes of deployment 
+    local mode
+        - single machine such as your laptop 
+        - local model convenient for testing, debugging and demonstration 
+    cluster mode 
+        - set of pre defined machines 
+        - good for production 
+    workflow: local -> clusters (when it reaches cluster mode, no code must be changed)
+
+// LESSON 1.2 - PYSPARK 
+- spark for python, similar computation speed and power as scala 
+pyspark shell 
+    - python based command line tool 
+    - support connecting to a cluster 
+sparkContext 
+    - entry point to enter spark cluster 
+
+sample codes 
+    # Create a Python list of numbers from 1 to 100 
+    numb = range(1, 100)
+
+    # Load the list into PySpark  
+    spark_data = sc.parallelize(numb)
+
+    # Load a local file into PySpark shell
+    lines = sc.textFile(file_path) # for creating distributed collections of unstructured data
+
+// LESSON 1.3 -  REVIEW OF FUNCTIONAL PROGRAMMING IN PYTHON 
+- lambda functions are anonymous functions in python, useful for map and filter method 
+
+lambda 
+    double = lambda x: x*2 # tbh this is just like javascript's arrow function
+    double(2) # calling the lambda function  
+map() 
+    - map(function, list)
+    - takes a function and a list and returns a new list which contains returned by that function for each item 
+    - think of it as modifying each value of the element 
+    code 
+        items = [1,2,3,4]
+        list(map(lambda x: x+2, items))
+filter() 
+    - filter(function,list)
+    - takes a function and a list and returns a new lsit ofr which the function evaluates as true 
+    - think of it as only getting the values you want in a collection 
+    code 
+        items = [1,2,3,4]
+        list(filter(lambda x: (x%2 != 0), items))
+
+// LESSON 2.1 - ABSTRACTING DATA WITH RDDs 
+
+rdd: resilient distributed datasets 
+    - rarely be using it, only useful if we can't do something we like with spark's dataframe 
+    - spark's core abstraction for working with data 
+    - flow: sparks process data -> it divides the data into partitions -> distributes the data cross cluster nodes, with each node containing a slice of data 
+
+creating rdd 
+    - parallelizing an existing collection of objects 
+    - external datasets 
+        - files in hdfs 
+        - objects in s3 
+        - lines in a text file 
+    - from existing rdd 
+parallelize() 
+    numRDD = sc.parallelize([1,2,3,4])
+from external dataset 
+    fileRDD = sc.textFile("README.md")
+
+understnading partitioning in pyspark 
+    - a partition is a logical division of a large distributed data set 
+    
+    # partitioning with parallelize() method
+    numRDD = sc.parallelize([1,2,3,4], minPartitions = 6)
+
+    # partitioning with from external dataset 
+    fileRDD = sc.textFile("README.md", minPartitions = 6)
+
+    # getting the number of partitions in an rdd 
+    fileRDD.getNumPartitions()
+
+// LESSON 2.2 - BASIC RDD TRANSFORMATIONS AND ACTIONS 
+overview of pyspark operations 
+    transformatoins 
+        - creates new rdd 
+        - basic rdd transformations: map(), filter(), flatMap(), and union()
+    actions 
+        - perform computation on rdd 
+basic rdd transformation 
+    # map(): remember this transformation applies a function to all elements 
+    RDD  = sc.parallelize([1,2,3,4])
+    RDD_map = RDD.map(lambda x: x * x)
+
+    # filter(): rembmer filter transforms returns a new rdd with only the elements that pass the condition 
+    RDD  = sc.parallelize([1,2,3,4])
+    RDD_map = RDD.filter(lambda x: x > 2)
+
+    # flatMap(): transformation returns multiple values for each element in the original rdd
+    RDD = sc.parallelize(["hello world", "how are you"]) 
+    RDD_flatmap = RDD.flatMap(lambda x: x.split(" ")) # what would happen is it would produce ["Hello", "world", "How", "are", "you"]
+
+    # union(): merging rdd
+    inputRDD = sc.textFile("logs.txt")
+    errorRDD = inputRDD.filter(lambda x: "error"in x.split())
+    warningsRDD = inputRDD.filter(lambda x: "warnings"in x.split())
+    combinedRDD = errorRDD.union(warningsRDD)
+basic rdd actions: operation return a value after running a computation on the rdd 
+    # collect() - returns all the elements of the dataset as an array 
+    # take(N) returns an array with the first N elements of the dataset 
+    # first() - prints the first element of the rdd 
+    # count() - return the number of elements in the rdd 
+
+// LESSON 2.3 - PAIR RDD IN PYSPARKS 
+- pair rdd: key is the identifier and value is the data 
+
+two common ways to create pair rdd 
+    - from a list of key value tuple 
+    - from a regular rdd 
+
+    # sample code of creating pair rdd from a tuple 
+    my_tuple = [('Sam', 23), ('Mary', 34), ('Peter', 25)]
+    pairRDD_tuple = sc.parallelize(my_tuple)
+
+    # sample code of creating pair rdd from a list 
+    my_list = ['Sam 23', 'Mary 34', 'Peter 25']
+    regularRDD = sc.parallelize(my_list)
+    pairRDD_RDD = regularRDD.map(lambda s: (s.split(' ')[0], s.split(' ')[1]))
+transformations on pair RDD 
+    - all regular transformations work on pair rdd 
+    - have to pass functions that operate on key value pairs rather than on individual elements 
+
+    # reduceByKey(): combines values with the same key 
+    regularRDD = sc.parallelize(
+        [("Messi", 23), ("Ronaldo", 34),
+        ("Neymar", 22), ("Messi", 24)])
+    pairRDD_reducebykey = regularRDD.reduceByKey(lambda x,y : x + y)
+    pairRDD_reducebykey.collect()
+    [('Neymar', 22), ('Ronaldo', 34), ('Messi', 47)]
+
+    # sortByKey(): operation order pair rdd by key | it returns an rdd sorted by key in ascending or descending order 
+    pairRDD_reducebykey_rev = pairRDD_reducebykey.map(lambda x: (x[1], x[0]))
+    pairRDD_reducebykey_rev.sortByKey(ascending=False).collect()
+    # result is this - [(47, 'Messi'), (34, 'Ronaldo'), (22, 'Neymar')]
+
+    # groupByKey: groups all the values with the same key in the pair RDD 
+    airports = [("US", "JFK"),("UK", "LHR"),("FR", "CDG"),("US", "SFO")]
+    regularRDD = sc.parallelize(airports)
+    pairRDD_group = regularRDD.groupByKey().collect()
+    for cont, air in pairRDD_group:  
+        print(cont, list(air))
+    
+    # result is this - 
+        FR ['CDG']
+        US ['JFK', 'SFO']
+        UK ['LHR']
+
+    # join(): joins the two pair rdd based on their key 
+    RDD1 = sc.parallelize([("Messi", 34),("Ronaldo", 32),("Neymar", 24)])
+    RDD2 = sc.parallelize([("Ronaldo", 80),("Neymar", 120),("Messi", 100)])
+
+    RDD1.join(RDD2).collect()
+    # result is this - [('Neymar', (24, 120)), ('Ronaldo', (32, 80)), ('Messi', (34, 100))]
+
+// LESSON 2.4 - ADVANCED RDD ACTIONS 
+# reduce() - action is used for aggregating the elements of a regular rdd 
+x = [1,3,4,6]
+RDD = sc.parallelize(x)
+RDD.reduce(lambda x, y : x + y) # would produce 14 
+
+# saveAsTextFile() - action saves rdd into a text file inside a directory with each partition as a separate file 
+RDD.saveAsTextFile("tempFile")
+# coalesce() - method can be used to save rdd as a single text file 
+RDD.coalesce(1).saveAsTextFile("tempFile")
+
+# countByKey() - action counts the number of elements for each key 
+# this countbykey is only available for type (K,V)
+rdd = sc.parallelize([("a", 1), ("b", 1), ("a", 1)])
+for kee, val in rdd.countByKey().items():  
+    print(kee, val)
+    # output: ('a', 2)('b', 1)
+
+# collectAsMap() - action that return the key value pairs in the rdd as a dictionary 
+sc.parallelize([(1, 2), (3, 4)]).collectAsMap() # output: {1: 2, 3: 4} 
+
+// LESSON 3.1 - ABSTRACTING DATA WITH DATAFRAMES 
+what are pyspark dataframes 
+    - pyspark sql is a spark library for structured data
+    - designed for processing both structured (e.g. relational database) and semi structured data (e.g. json)
+    - dataframes in pyspark support both sql queries (SELECT * from table) or expression methods (df.select()) 
+sparksession - entry point for dataframe api 
+    - entry point for rdd are spark context but for df(dataframe) it's sparksession 
+    - used to craete df, register dataframes, execute sql queries 
+    - available in pyspark shell as spark 
+creating dataframes in pyspark 
+    - from existing rdd using sparksessions createDataFrame method 
+    - from various data sources (csv,json,txt) using sparksession's read method 
+    - schema controls the data and helps dataframes to optimize queries 
+    - schema provides information about column name, type of data in the column, empty values etc. 
+
+    # creating a dataframe from rdd 
+    iphones_RDD = sc.parallelize([    
+        ("XS", 2018, 5.65, 2.79, 6.24),    
+        ("XR", 2018, 5.94, 2.98, 6.84),    
+        ("X10", 2017, 5.65, 2.79, 6.13),    
+        ("8Plus", 2017, 6.23, 3.07, 7.12)
+    ])
+    names = ['Model', 'Year', 'Height', 'Width', 'Weight'] # column names for rdd 
+
+    iphones_df = spark.createDataFrame(iphones_RDD, schema=names) # schema= is for column names, weird wtf
+    type(iphones_df)
+
+    # creating a dataframe from reading a csv/json/txt 
+    df_csv = spark.read.csv("people.csv", header=True, inferSchema=True)
+    df_json = spark.read.json("people.json", header=True, inferSchema=True)
+    df_txt = spark.read.txt("people.txt", header=True, inferSchema=True)
+
+        # two optional parameters 
+        # header=True means treat first row as column names 
+        # inferSchema=True means infer the datatype from the schema, meaning it will attempt to assign the right datatype to each column based on the content, but we all know this is a bad idea, schema should be explicitly designed not inferred to avoid unexpectations 
+
+// LESSON 3.2 - OPERATING ON DATAFRAMES IN PYSPARK 
+dataframe operations: transformations and actions 
+basic dataframe transformations 
+    - select()/show(), filter(), groupby(), orderby(), dropDuplicates(), and withColumnRenamed() 
+
+    # select(): transformations subsets the columns in the dataframe, or show column in dataframe 
+    df_id_age = test.select('Age') # select column age 
+    df_id_age.show(3) # show the query we have selected 
+
+    # filter(): transformation filters out the rows based on a condition 
+    new_df_age21 = new_df.filter(new_df.Age > 21) # only show rows that has age greater than 21 
+    new_df_age21.show(3)
+
+    # groupyby() and count(): groupby is used to group entities or rows, count is for counting duh 
+    test_df_age_group = test_df.groupby('Age') # group all rows that has the same values in the age column 
+    test_df_age_group.count().show(3) # count is an aggregate function that counts how many values are there in each group 
+
+    # orderby(): operation sorts the dataframe based on one or more columns 
+    test_df_age_group.count().orderBy('Age').show(3)
+
+    # dropDuplicates: removes the duplicate rows of a dataframe 
+    test_df_no_dup = test_df.select('User_ID','Gender', 'Age').dropDuplicates()
+    test_df_no_dup.count() # if we used count without groupby meaning it would count all of the values in a column specified as a whole 
+
+    # withColumnRenamed(): renames a column in the dataframe 
+    test_df_sex = test_df.withColumnRenamed('Gender', 'Sex')
+    test_df_sex.show(3)
+
+    # printSchema(): prints the schema
+    test_df.printSchema()
+
+basic dataframe actions 
+    - head(), show(), count(), columns() and describe() 
+
+    # columns: prints the columns of a dataframe 
+    test_df.columns
+
+    # describe(): compute summary statistics of numerical columns in the dataframe 
+    test_df.describe().show()
+    

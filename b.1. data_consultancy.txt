@@ -1,0 +1,35 @@
+// building a data mining, data vendor and data consultancy company 
+mission
+    - 
+vision
+    - making data accessible not only to big business but to medium sized businessed as well by offering monthly subscription 
+    - what are the ways we could cheapen the offer 
+        - low profit margin? 
+        - are there any deal we could offer so they would be able to afford it 
+what company does 
+    - mine data 
+    - sell that data to customers 
+    - if customer have the data then extract useful information from it then sell that 
+    - if customer have data and wanted it clean then sell the cleaned data 
+    - if customer have the data and wanted it clean with extracted useful information then do that 
+offers 
+    - one time data that contains hundreds of thousands of rows 
+    - monthly subscription for small to medium sized companies so they could afford data 
+    - data analytics( we could mine for them and perform the analysis at the same time ): this is for companies that couldn't afford business intelligence 
+how could customers acces our data 
+    - through api, csv, xlsx or database 
+uses cases of the data we're selling 
+    - research
+        - datasets as the foundation for quantitivate research and analysis 
+    - human resource 
+        - gain an unparalleled edge in hr with a wealth of workforce data 
+    - investment 
+        - udnerstand the performance of a company 
+    - alumni
+        - understanding people like their work experience and education 
+        - maybe you could grab this one's data in linkedin 
+companies we could gain inspiration from 
+    - mantheos 
+    - prospectdock
+how to pitch this idea to investors 
+    - how????

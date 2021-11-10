@@ -1,0 +1,176 @@
+// LESSON 1.1 - A SCALABLE LANGUAGE 
+	- general purpose programming langauge, many of scala's design decision aimed to address criticism of java
+	- used by data engineers, data scientist, machine learning engineer, etc.
+
+// LESSON 1.2 - SCALA CODE AND THE SCALA INTERPRETER 
+	- scala combines object oriented and functional programming in one concise high level langauge
+	- scala has static types which helps avoid bugs in complex applications 
+
+	// scala being object oriented 
+	// every value is an object 
+	// every operation is a method call
+	val SumA = 2 + 4 // behind the scene +() method is being called on the object 2 which looks like this 2.+(4)
+
+	// scala is functional 
+	// functions are first class values just like in javascript 
+	// operations of a programm should map input values to output values rather than change data in place 
+
+	// scala interpeter - using scala in command line 
+	// type scala in command line 
+	// type 2 + 3 -> what happen is scala generates a variable and interpret its datatype 
+	// result would res0: Int = 5 | res0 is the generated variable, Int is the interpreted datatype and 5 is the result of 2 + 3
+
+	// printing in scala 
+	println("Hello World")
+
+// LESSON 1.3 - IMMUTABLE VARIABLES (VAL) AND VALUE TYPES 
+	// immutable(constant) and mutable(variable or value can change)
+	val fourHearts: Int = 4 // like a constant in c++ and final in java and const in javascript 
+	var fourSpade: Int = 2 // values can be reassigned in this variable   
+
+	// scala's value types 
+	val b: Byte = 1
+	val i: Int = 1
+	val l: Long = 1
+	val s: Short = 1
+	val d: Double = 2.0 // stores floating values up to 15 points
+	val f: Float = 3.0f // stores floating values up to 7 points
+	val g: Bool = True 
+	val h: Char = 'a'
+    val i: String = "Hello" // sequence of characters 
+	unit // used as a return statement for a function when no value is to be returned, like a void except in void in c++ we don't specify return
+
+// LESSON 1.4 - TYPE INFERENCE 
+- can automatically interpret what datatype to use, altho its always much better to explicitly state the datatype to avoid unexpectations
+
+    // semicolons are optional just like in javascript 
+
+// LESSON 2.1 - SCRIPTS, APPLICATIONS, AND REAL-WORLD WORKFLOWS 
+scala 
+	- looks like an interpreted but actually a compiled langauge, which makes it a fast language 
+scala scripts 
+	- sequence of instructions in a file, executed sequentially 
+	- useful for smaller projects 
+interpreted language vs compiled language 
+	interpreter: program that directly executes insutrction written in a programming langauge, without requiring them previously to have been compiled into machine code 
+		- programmer use programming language -> consumer copies the code from programmer's device -> consumer uses interpreter to compile the code 
+		- cross platform
+		- slower as it interprets line by line 
+	compiler: a program that translates source code from a high level programming to a lower level language  
+		- programmer use programming language -> compile it into machine code -> consumer executes the program with the compiled program already
+		- always faster  
+		- source code is always private 
+
+// LESSON 2.2 - FUNCTIONS 
+// functions are first class values, meaning this could work just like how we assign a value into a variable 
+// we could assign a function into a variable 
+// functions as first class meaning you could pass a function as a parameter inside a function 
+def bust(hand: Int): Boolean = { def functionName(parameter: datatype):datatype 
+	hand > 21; // return this 
+}
+
+// LESSON 2.2.5 - SCALA'S ARROW FUNCTION ALIKE 
+val isEven = (i:Int) => i % 2 == 0
+
+// LESSON 2.3 - ARRAYS 
+collections 
+	immutable collections 
+		- never change 
+	mutable collections 
+		- can be updated or extended in place 
+array 
+	- mutable sequence of objects that share the same type 
+	
+	// declaring + initializing an array 
+	val players = Array("Alex", "Chen", "Marta"); // creating a string array 
+
+	// declaring an array - in this case array of string that has a length/size of 3
+	val players = new Array[String](3)
+	val hands: Array[Int] = new Array[Int](3); // explicitly stating datatype
+
+	// initializing an array 
+	players(0) = "Alex";
+	players(0) = "Chen"; 
+val vs var array 
+	val array: an entire new array can be assigned but still can modify specific element value but not it's datatype 
+	var array: an entire new array can be assigned but still can modify specific element value but not it's datatype 
+any array type 
+	- array that stores any kind of datatype 
+	val mixedTypes = new Array[Any](3)
+
+// LESSON 2.4 - LISTS 
+- you'll most likely use lists than array as it is immutable, and immutable is good for functional programming 
+- list is an immutable collection meaning you cannot chagne the value of the element 
+val players = List("Alex","Chen","Marta");
+
+// prepending a new value at the list, note we need to create a copy since we cannot modify a list 
+val players = List("Alex","Chen","Marta");
+val newPlayers = "Sindhu" :: players; // this would now result to List(Sindhu, Alex, Chen, Martha) | "::" colon-colon is unique to lists in scala
+
+// common way to to initiliaze new lists 
+val players = "Alex" :: "Chen" :: "Marta"
+
+// concatenating lists using triple colons 
+val playersA = List("Sindhu", "Alex");
+val playersB = List("Chen", "Marta");
+val allPlayers = playersA ::: playersB;
+println(allPlayers); // this would produce: List(Sindhu,Alex,Chen,Marta)
+
+// LESSON 3.1 - SCALA'S STATIC TYPE SYSTEM 
+- this means explicitly stating the datatype 
+static type systems 
+	- c/c++
+	- fortran 
+	- java 
+	- scala, etc.  
+dynamic type systems 
+	- javascript 
+	- python
+	- ruby 
+	- r, etc. 
+
+// without type inference - or explicitly stating the datatype 
+val fourHearts: Int = 4; // MUCH BETTER!
+// with type inference - or datatype automatically itnerpreted 
+val fourHearts = 4;
+
+// LESSON 3.2 - IF STATEMENTS 
+val fourHearts: Int = 4;
+
+if (fourHearts > 1) { // if (condition)
+	/* statement to be done if true */
+	println("print this");
+} else if (fourHearts > 2) {
+	println("print this 1");
+} else {
+	println("print this 2");
+}
+
+// shorthand for the statement above 
+if (fourHearts > 1) println("print this")
+else if (fourHearts > 2) println("print this")
+else println("print this 3")
+
+// another unique style for if else 
+if (handA > handB) printtln(handA) else println(handB)
+
+// assigning value to a variable using if statement 
+val maxHand = if (handA > handB) handA else handB
+
+// LESSON 3.3 - WHILE AND THE IMPERATIVE STYLE 
+var i = 0;
+val numRepetitions = 3;
+
+// looping using while loop 
+while(i < numRepetitions){
+	println("Hep hep hooray");
+	i = i + 1; // unfortunately, i++ doesn't work in here :(
+}
+
+// looping in a collection 
+var i = 0;
+var hands = Array(17,24,21);
+
+while (i < hands.length) {
+	// body of loop 
+}

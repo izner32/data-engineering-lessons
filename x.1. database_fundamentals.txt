@@ -1,4 +1,4 @@
-// LESSON 1.1 - NORMALISATION
+// LESSON 1.1 - NORMALIZATION
 - organize data and reduce redundant data 
 - improves data integrity 
 - this is useful if you're the one creating the database but you're a database engineer!!! you modify existing database already 
@@ -39,7 +39,7 @@ data anomalies
     - relation with a single attribute primary key is automatically atleast 2nf 
     - to be in 2nf, it has to be in 1nf first 
     
-    example: not 2nf since stud_no and course_no are both primary keys thus forming (composite key)
+    example: not 2nf since stud_no and course_no are both primary keys thus forming (composite key) | candidate keys are also not unique for each rows so we also have to fix that 
         STUD_NO            COURSE_NO        COURSE_FEE
         1                     C1                  1000
         2                     C2                  1500
@@ -161,18 +161,18 @@ ATTRIBUTE - single individual value in a column that describes an entity
 ROWS - data object 
 TUPLE - one record/row 
 RECORD - just like tuple, row 
-ENTITIY - single row 
+ENTITIY - single row | in er diagram entity is the table
 DATA - individual cell data 
 SCHEMA - like a format on how a columns datatype on a table should look like 
 KEYS 
-    PRIMARY KEYS - uniquely identifies every row in that table 
-    FOREIGN KEYS - creates relationship between two tables, allow navigation between two different instance of an entity 
-    COMPOSITE KEY - key that consists of two or more attributes that uniquely identify any row in the table
-    CANDIDATE KEY -  unique and no repeating values just like primary key 
-    SUPER KEY - group of single or multiple keys which can identify rows in a table
-    ALTERNATE KEY - column or group of columns in a table that uniquely identify every row in that table
-    COMPOUND KEY - has two or more attributes that allow you to uniquely recognize a specific record
-    SURROGATE KEY - an artificial key which aims to uniquely identify each record is called a surrogate key
+    PRIMARY KEYS - uniquely identifies every row in that table | e.g. { stud_id }
+    FOREIGN KEYS - creates relationship between two tables, allow navigation between two different instance of an entity. This is the primary key from a different table that is in your current table. | e.g. table1(other) - {stud_id}, table2(current) - {stud_id}
+    COMPOSITE KEY - key that consists of two or more attributes that uniquely identify any row in the table | e.g. { cust_id, product_code }
+    CANDIDATE KEY -  unique and no repeating values just like primary key. A field that can uniquely identify a row | e.g. {stud_id}, {roll_no}, {email} - these single fields alone can identify a unique row 
+    SUPER KEY - group of single or multiple keys which can identify rows in a table | e.g. { emp_ssn } - this column alone can identify the row, { emp_id } - this column alone can identify the row, { emp_ssn,emp_id } - these two columns alone can idenfity a row, etc. 
+    ALTERNATE KEY - Remaining candidate key after primary key is chosen. | e.g. let's say there are three candidate keys:{stud_id,roll_no,email} then {stud_id} was chosen as primary key therefore {roll_no,email} becomes the alternate key 
+    COMPOUND KEY - has two or more foreign keys in your current table which could be used to uniquely identify a row | e.g. {student_id} and {course_id} are primary key in other table but is a foreign key in our current table, we could combine these two fields {student_id,course_id} to form a compound key 
+    SURROGATE KEY - an artificial or non natural key which aims to uniquely identify each record is called a surrogate key, pretty much like priamry except its system generated | e.g. 12asdfq23h
 DEPENDENCIES
     PARTIAL DEPENDENCIES - occurs when a non prime attribute is dependent on part of a candidate key( or a key which could tell if a an entity is unique )
     TRANSITIVE DEPENDENCIES - e.g. if we know the book then we know the author but if we know the author we cannot know the book, that is transitive dependency 

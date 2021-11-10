@@ -11,7 +11,7 @@ mv original.txt ../directoryName/path - moving a file into another directory
 mv original.txt newFileName.txt - renaming a file 
 rm original.txt | can also be rm original.txt anotherfiletext.txt (multiple removal) - removing a file 
 rmdir directoryName - remove a directory/folder, it only works if the directory is empty
-mkdir directoryName
+mkdir directoryName - creatign a directory 
 
 // LESSON 2 - MANIPULATING DATA INSIDE A FILE 
 cat original.txt - produce all of the content of the file 
@@ -109,3 +109,12 @@ common mistake
 3 - grabbing the column, row, sorted, specific or unique values | wildcards like *,|,etc.
 4 - printing with echo and using for loop cmd 
 5 - using nano and bash 
+
+// LESSON X.2 - LINUX COMMANDS 
+sed - edit files with commands, with no need for a text editor 
+    sed 's/unix/linux' test - s is for subsitute, meaning substitute the first word match for unix with linux 
+    sed 's/unix/linux/2' test - substitute first 2 unix match with linux 
+    sed 's/unix/linux/g' test - substitute all unix match with linux 
+awk - for processing or analyzing text files - in particular, data files that are organized by lines(rows) and columns 
+    awk '{print $1}' test.txt - print only the first column, replace 1 wiht 2 for 2nd column 
+    awk '{print $NF}' test.txt - print the last values for all columns | its much better to use $3 if ever the last column is the 3rd column 

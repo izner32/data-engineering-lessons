@@ -254,6 +254,20 @@ common data transformations
     - joining 
         ratings_with_prices = ratings.join(prices, ["brand", "model"])
 
+// UNFINISHED - LESSON 2.4 - PACKAGING YOUR APPLICATION 
+- zip your files 
+
+// LESSON 3.1 - IMPORTANCE OF TESTS 
+rationale behind testing 
+    - improves chance of code being correct in the future 
+    - raises confidence (not a guarantee) that code is correct now 
+    - most up to date documentation 
+test pyramid 
+    - unit test: test for each function 
+    - integration test: itneraction with file systems and databases 
+    - ui test: test as user interacts with the application
+
+// LESSON 3.2 - QWRITING UNIT TESTS FOR PYSPARK 
 
 
 // LESSON X.1 - CONCLUSION WORKFLOW 
@@ -272,3 +286,5 @@ data transformation
     starting the sparks analytic engine: obviously to be able to use spark 
     reading the file (csv,etc.)
     enforcing a schema: creating a schema to be used 
+    cleaning the data 
+    transforming the data 

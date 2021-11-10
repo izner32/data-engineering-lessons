@@ -1,0 +1,23 @@
+// LESSON 1.1 - DATA MODELING AND TABLE PROPERTIES 
+data model 
+    - typically a visual representation 
+    - it includes 
+        - tables 
+        - columns 
+        - relationships between tables 
+        - data types 
+        - keys 
+data modeling 
+    - creating data model 
+columns and row management 
+    - keep or remove specific columns | e.g. remove empty column 
+    - keep or remove specific rows | e.g. keep top row as header 
+    - split a single column in multiple columns | e.g. dd/mm/yyyy column split in dd, mm, and yyyy columns 
+    - summarize/group rows in a table by the contents of a column | e.g. sum or median of all rows
+data type 
+    - choosing the right data type is essential 
+    - constrain data to a specific shape 
+    - optimize storage 
+    - enable specific functionality 
+
+// LESSON 1.2 - LOAD AND TRANSFORM DATA IN POWER BI
